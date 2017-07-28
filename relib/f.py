@@ -1,5 +1,13 @@
+import inspect
+from collections import Counter
+
+def get_num_args(fn):
+  return len(inspect.getargspec(fn)[0])
+
 def map(items, fn):
-  return [fn(x) for x in items]
+  if get_num_args(fn) == 1:
+    return [fn(x) for x in items]
+  return [fn(items[i], i) for i in range(len(items))]
 
 def filter(items, fn):
   return [x for x in items if fn(x)]
@@ -34,3 +42,26 @@ def dict_zip(des):
     return d
 
   return map(range(length), make_d)
+
+def make_combinations_by_dict(des, keys=None, pairs=[]):
+  keys = list(des.keys()) if keys == None else keys
+  if len(keys) == 0:
+    return [dict(pairs)]
+  key = keys[0]
+  remaining_keys = keys[1:]
+  new_pairs = [(key, val) for val in des[key]]
+  return flatten(
+    [make_combinations_by_dict(des, remaining_keys, [pair] + pairs) for pair in new_pairs]
+  )
+
+def foreach(l, fn):
+  num_arguments = get_num_args(fn)
+  for i in range(len(l)):
+    fn(l[i]) if num_arguments == 1 else fn(l[i], i)
+
+def get_list_of_dominant_values(items, threshold=0.05):
+  num_items = len(items)
+  freq_by_value = Counter(items)
+  distinct_values = list(freq_by_value.keys())
+  dominant_values = [val for val in distinct_values if freq_by_value[val] / num_items >= threshold]
+  return dominant_values, distinct_values
