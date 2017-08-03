@@ -64,7 +64,7 @@ def get_execution_tree(func):
   children = children_by_func[func] if func in children_by_func else []
   children_response = f.map(children, get_execution_tree)
   function_bodies = '\n'.join([function_body] + [res['function_bodies'] for res in children_response])
-  hash = get_hash(function_bodies)
+  hash = func.__name__ + get_hash(function_bodies)
 
   def wrapper_func():
     params = [res['run']() for res in children_response]
