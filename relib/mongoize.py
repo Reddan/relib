@@ -16,7 +16,7 @@ def get_function_body(func):
   return '\n'.join(lines)
 
 def get_hash(string):
-  return '_' + reutils.sha224(string)
+  return ' [' + reutils.sha224(string) + ']'
 
 # Core mongoize
 def get_collection_timestamp(collection_name):
