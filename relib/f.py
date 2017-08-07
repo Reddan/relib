@@ -46,7 +46,7 @@ def dict_zip(des):
   return map(range(length), make_d)
 
 def make_combinations_by_dict(des, keys=None, pairs=[]):
-  keys = list(des.keys()) if keys == None else keys
+  keys = sorted(des.keys()) if keys == None else keys
   if len(keys) == 0:
     return [dict(pairs)]
   key = keys[0]
