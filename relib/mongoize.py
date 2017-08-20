@@ -1,11 +1,13 @@
 from . import reutils
 from . import f
-import pymongo
-import time
+from .storages import pickle_storage
+from .storages import bcolz_storage
+from .storages import mongo_storage
 import inspect
 from termcolor import colored
 
-mongo = pymongo.MongoClient('mongodb://localhost/').relib
+storages = {'pickle': pickle_storage, 'bcolz': bcolz_storage, 'mongo': mongo_storage}
+storages['pickle'].initialize()
 
 # Helper functions
 def get_function_body(func):
@@ -19,38 +21,19 @@ def get_hash(string):
   return ' [' + reutils.sha224(string) + ']'
 
 # Core mongoize
-def get_collection_timestamp(collection_name):
-  try:
-    doc = mongo[collection_name].find_one()
-    datetime = doc['_id'].generation_time
-    return int(datetime.timestamp())
-  except:
-    return 0
-
-def get_is_expired(collection_name):
-  now = time.time()
-  expiration_time = now - (60 * 60 * 24 * 5)
-  collection_time = get_collection_timestamp(collection_name)
-  return expiration_time >= collection_time
-
-def get(collection_name):
-  return list(mongo[collection_name].find({}, {'_id': 0}))
-
 def run_memoizer(func, name, force=False):
-  if force or get_is_expired(name):
+  storage = storages['pickle']
+  if force or storage.get_is_expired(name):
     if force:
       print(colored(' WITH FORCE ', 'grey', 'on_blue'), colored(name, 'blue'))
     else:
       print(colored(' MEMORIZING ', 'grey', 'on_blue'), colored(name, 'blue'))
     data = func()
-    mongo[name].drop()
-    mongo[name].insert_many(data)
-    for row in data:
-      del row['_id']
+    storage.store_data(name, data)
     return data
   else:
     print(colored(' REMEMBERED ', 'grey', 'on_green'), colored(name, 'green'))
-    return get(name)
+    return storage.load_data(name)
 
 # Memoize decorator
 func_by_wrapper = {}
