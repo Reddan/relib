@@ -22,21 +22,31 @@ def get_is_expired(collection_name):
   collection_time = get_collection_timestamp(collection_name)
   return expiration_time >= collection_time
 
-def store_data(collection_name, data):
-  created = time.time()
-  is_list = isinstance(data, list)
-  is_np_array = isinstance(data, np.ndarray)
-  meta_data = {'created': created, 'is_list': is_list, 'is_np_array': is_np_array}
-  c = bcolz.carray(data, rootdir=storage_dir + collection_name, mode='w')
-  c.flush()
-  c = bcolz.carray(meta_data, rootdir=storage_dir + collection_name + '_meta', mode='w')
+def insert_data(path, data):
+  c = bcolz.carray(data, rootdir=path, mode='w')
   c.flush()
 
+def store_data(collection_name, data):
+  path = storage_dir + collection_name
+  created = time.time()
+  is_tuple = isinstance(data, tuple)
+  length = len(data)
+  meta_data = {'created': created, 'is_tuple': is_tuple, 'length': length}
+  insert_data(path + '_meta', meta_data)
+  if is_tuple:
+    for i in range(length):
+      sub_collection_name = collection_name + ' (' + str(i) + ')'
+      store_data(sub_collection_name, data[i])
+  else:
+    insert_data(path, data)
+
 def load_data(collection_name):
-  data = bcolz.open(storage_dir + collection_name)[:]
-  meta_data = bcolz.open(storage_dir + collection_name + '_meta')[:][0]
-  if meta_data['is_list']:
-    return data.tolist()
-  if not meta_data['is_np_array']:
-    return data[0]
-  return data
+  path = storage_dir + collection_name
+  meta_data = bcolz.open(path + '_meta')[:][0]
+  if meta_data['is_tuple']:
+    partitions = range(meta_data['length'])
+    data = [load_data(collection_name + ' (' + str(i) + ')') for i in partitions]
+    return tuple(data)
+  else:
+    data = bcolz.open(path)[:]
+    return data
