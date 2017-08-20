@@ -1,9 +1,12 @@
 import pymongo
 import time
 
+mongo = None
+
 def initialize():
   global mongo
-  mongo = pymongo.MongoClient('mongodb://localhost/').relib
+  if mongo == None:
+    mongo = pymongo.MongoClient('mongodb://localhost/').relib
 
 def get_collection_timestamp(collection_name):
   try:

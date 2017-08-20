@@ -8,9 +8,6 @@ from termcolor import colored
 
 storages = {'pickle': pickle_storage, 'bcolz': bcolz_storage, 'mongo': mongo_storage}
 
-storages['pickle'].initialize()
-storages['bcolz'].initialize()
-
 # Helper functions
 def get_function_body(func):
   # TODO: Strip comments
@@ -25,6 +22,7 @@ def get_hash(string):
 # Core mongoize
 def run_memoizer(func, name, force=False, storage_format='pickle'):
   storage = storages[storage_format]
+  storage.initialize()
   storage_log = colored(storage_format, 'white', attrs=['dark'])
   if force or storage.get_is_expired(name):
     if force:
