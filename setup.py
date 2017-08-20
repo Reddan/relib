@@ -5,6 +5,8 @@ setup(
   version='0.1',
   packages=['relib'],
   install_requires=[
+    'numpy',
+    'bcolz',
     'pymssql',
     'pymongo',
     'termcolor'
