@@ -1,11 +1,11 @@
-from . import mongoize
-from . import reutils
+from . import storage
+from . import hashing
 import pymssql
 import decimal
 
 def get_query_hash(query):
   trimmed_query = '\n'.join([q.strip() for q in query.strip().split('\n')])
-  return '_' + reutils.sha224(trimmed_query)
+  return '_' + hashing.hash(trimmed_query)
 
 def serialize_rows(rows):
   if len(rows) == 0:
@@ -29,7 +29,7 @@ def create_instance(server, user, password, database):
       with pymssql.connect(server, user, password, database) as conn:
         return execute_query(conn, query)
     if memoize:
-      return mongoize.run_memoizer(fn, name=get_query_hash(query))
+      return storage.store_on_demand(fn, name=get_query_hash(query))
     else:
       return fn()
 
