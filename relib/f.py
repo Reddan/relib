@@ -1,10 +1,12 @@
 # f for functional
 
-import inspect
 from collections import Counter
 
+def distinct(items):
+  return list(set(items))
+
 def get_num_args(fn):
-  return len(inspect.getargspec(fn)[0])
+  return fn.__code__.co_argcount
 
 def map(items, fn):
   if get_num_args(fn) == 1:
@@ -16,6 +18,11 @@ def filter(items, fn):
 
 def flatten(l):
   return [item for sublist in l for item in sublist]
+
+def reduce(items, reducer, state):
+  for item in items:
+    state = reducer(state, item)
+  return state
 
 def group(items, fn):
   data_by_key = {}
@@ -56,7 +63,10 @@ def make_combinations_by_dict(des, keys=None, pairs=[]):
     [make_combinations_by_dict(des, remaining_keys, [pair] + pairs) for pair in new_pairs]
   )
 
-def foreach(l, fn):
+def foreach(items, fn):
   num_arguments = get_num_args(fn)
-  for i in range(len(l)):
-    fn(l[i]) if num_arguments == 1 else fn(l[i], i)
+  for i in range(len(items)):
+    if num_arguments == 1:
+      fn(items[i])
+    else:
+      fn(items[i], i)
