@@ -32,20 +32,17 @@ def get_func_children(func):
   def transform(co_name):
     return func_by_wrapper[func.__globals__[co_name]]
 
-  return f.map(f.filter(co_names, filter), transform)
-
-def get_func_tree(func):
-  func_children = get_func_children(func)
-  func_children = [get_func_tree(child_func) for child_func in func_children]
+  func_children = f.map(f.filter(co_names, filter), transform)
+  func_children = [get_func_children(child_func) for child_func in func_children]
   funcs = [func] + f.flatten(func_children)
   funcs = list(set(funcs))
   return sorted(funcs, key=lambda func: func.__name__)
 
-def memoize(compress=False):
-  storage_format = 'bcolz' if compress else 'pickle'
+def memoize(in_memory=False, compress=False):
+  storage_format = 'memory' if in_memory else 'bcolz' if compress else 'pickle'
 
   def receive_func(func):
-    funcs = get_func_tree(func)
+    funcs = get_func_children(func)
     concatenated_function_bodies = '\n'.join(f.map(funcs, get_function_body))
 
     def wrapper(*args, **kwargs):
@@ -56,6 +53,7 @@ def memoize(compress=False):
       name = func.__name__ + ' [' + hash + ']'
       return storage.store_on_demand(run, name, storage_format=storage_format)
 
+    wrapper.__name__ = func.__name__ + ' wrapper'
     wrapper_set.add(wrapper)
     func_by_wrapper[wrapper] = func
     return wrapper
