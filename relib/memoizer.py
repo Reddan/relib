@@ -28,7 +28,7 @@ def get_func_children(func, neighbor_funcs=[]):
 
   def filter(co_name):
     candidate_func = func.__globals__.get(co_name, None)
-    is_callable = callable(candidate_func)
+    is_callable = callable(candidate_func) and hasattr(candidate_func, '__code__')
     is_not_neighbor = is_callable and transform(co_name) not in neighbor_funcs
     return is_not_neighbor
 
@@ -38,7 +38,7 @@ def get_func_children(func, neighbor_funcs=[]):
   funcs = list(set(funcs))
   return sorted(funcs, key=lambda func: func.__name__)
 
-def memoize(in_memory=False, compress=False):
+def memoize(*args, in_memory=False, compress=False):
   storage_format = 'memory' if in_memory else 'bcolz' if compress else 'pickle'
 
   def receive_func(func):
@@ -57,5 +57,8 @@ def memoize(in_memory=False, compress=False):
     wrapper.__name__ = func.__name__ + ' wrapper'
     func_by_wrapper[wrapper] = func
     return wrapper
+
+  if len(args) == 1 and callable(args[0]):
+    return receive_func(args[0])
 
   return receive_func
