@@ -2,6 +2,10 @@ from . import f
 from . import hashing
 from . import storage
 import inspect
+from types import CodeType
+
+func_by_wrapper = {}
+invoke_level = -1
 
 def get_function_body(func):
   # TODO: Strip comments
@@ -10,11 +14,8 @@ def get_function_body(func):
   lines = [line for line in lines if line]
   return '\n'.join(lines)
 
-func_by_wrapper = {}
-code = type(get_function_body.__code__)
-
 def get_code_children(__code__):
-  children = [const for const in __code__.co_consts if isinstance(const, code)]
+  children = [const for const in __code__.co_consts if isinstance(const, CodeType)]
   children = f.flatten([get_code_children(__code__) for __code__ in children])
   return [__code__] + children
 
@@ -38,21 +39,29 @@ def get_func_children(func, neighbor_funcs=[]):
   funcs = list(set(funcs))
   return sorted(funcs, key=lambda func: func.__name__)
 
+def get_function_hash(func):
+  funcs = get_func_children(func)
+  function_bodies = f.map(funcs, get_function_body)
+  function_bodies_hash = hashing.hash(function_bodies)
+  return function_bodies_hash
+
 def memoize(*args, in_memory=False, compress=False):
   storage_format = 'memory' if in_memory else 'bcolz' if compress else 'pickle'
 
   def receive_func(func):
-    funcs = get_func_children(func)
-    function_bodies = f.map(funcs, get_function_body)
-    function_bodies_hash = hashing.hash(function_bodies)
+    function_hash = get_function_hash(func)
 
     def wrapper(*args, **kwargs):
       def run():
         return func(*args, **kwargs)
 
-      hash = hashing.hash([function_bodies_hash, args, kwargs or 0])
+      global invoke_level
+      invoke_level += 1
+      hash = hashing.hash([function_hash, args, kwargs or 0])
       name = func.__name__ + ' [' + hash + ']'
-      return storage.store_on_demand(run, name, storage_format=storage_format)
+      out = storage.store_on_demand(run, name, storage_format=storage_format, invoke_level=invoke_level)
+      invoke_level -= 1
+      return out
 
     wrapper.__name__ = func.__name__ + ' wrapper'
     func_by_wrapper[wrapper] = func
