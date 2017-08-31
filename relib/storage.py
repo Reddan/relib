@@ -23,8 +23,7 @@ def store_on_demand(func, name, storage_format='pickle', invoke_level=0):
   if storage.get_is_expired(name):
     if do_print: log('blue', ' MEMORIZING ', invoke_level, name, storage_format)
     data = func()
-    storage.store_data(name, data)
-    return data
+    return storage.store_data(name, data)
   else:
     if do_print: log('green', ' REMEMBERED ', invoke_level, name, storage_format)
     return storage.load_data(name)

@@ -29,6 +29,7 @@ def store_data(collection_name, data):
     pickle.dump(data, file, -1)
   with open(storage_dir + collection_name + '_meta.pkl', 'wb') as file:
     pickle.dump(meta_data, file, -1)
+  return data
 
 def load_data(collection_name):
   with open(storage_dir + collection_name + '.pkl', 'rb') as file:

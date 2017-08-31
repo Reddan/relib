@@ -39,6 +39,7 @@ def store_data(collection_name, data):
       store_data(sub_collection_name, data[i])
   else:
     insert_data(path, data)
+  return data
 
 def load_data(collection_name):
   path = storage_dir + collection_name

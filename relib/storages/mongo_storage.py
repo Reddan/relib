@@ -27,6 +27,7 @@ def store_data(collection_name, data):
   mongo[collection_name].insert_many(data)
   for row in data:
     del row['_id']
+  return mongo[collection_name]
 
 def load_data(collection_name):
   data = mongo[collection_name].find({}, {'_id': 0})
