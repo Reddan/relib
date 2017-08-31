@@ -30,5 +30,4 @@ def store_data(collection_name, data):
   return mongo[collection_name]
 
 def load_data(collection_name):
-  data = mongo[collection_name].find({}, {'_id': 0})
-  return list(data)
+  return mongo[collection_name]
