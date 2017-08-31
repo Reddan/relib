@@ -45,8 +45,8 @@ def get_function_hash(func):
   function_bodies_hash = hashing.hash(function_bodies)
   return function_bodies_hash
 
-def memoize(*args, in_memory=False, compress=False):
-  storage_format = 'memory' if in_memory else 'bcolz' if compress else 'pickle'
+def memoize(*args, in_memory=False, compress=False, mongo=False):
+  storage_format = 'memory' if in_memory else 'bcolz' if compress else 'mongo' if mongo else 'pickle'
 
   def receive_func(func):
     function_hash = get_function_hash(func)
