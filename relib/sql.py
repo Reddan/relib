@@ -21,12 +21,12 @@ def serialize_rows(rows):
 def execute_query(conn, query):
   with conn.cursor(as_dict=True) as cursor:
     cursor.execute(query)
-    return serialize_rows([x for x in cursor])
+    return serialize_rows(list(cursor))
 
-def create_instance(server, user, password, database):
+def create_instance(**creds):
   def fetch(query, memoize=False):
     def fn():
-      with pymssql.connect(server, user, password, database) as conn:
+      with pymssql.connect(**creds) as conn:
         return execute_query(conn, query)
     if memoize:
       return storage.store_on_demand(fn, name=get_query_hash(query))
