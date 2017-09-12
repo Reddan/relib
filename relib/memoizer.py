@@ -45,7 +45,7 @@ def get_function_hash(func):
   function_bodies_hash = hashing.hash(function_bodies)
   return function_bodies_hash
 
-def memoize(*args, in_memory=False, compress=False, mongo=False):
+def memoize(*args, in_memory=False, compress=False, mongo=False, expire_in=None):
   storage_format = 'memory' if in_memory else 'bcolz' if compress else 'mongo' if mongo else 'pickle'
 
   def receive_func(func):
@@ -59,7 +59,7 @@ def memoize(*args, in_memory=False, compress=False, mongo=False):
       invoke_level += 1
       hash = hashing.hash([function_hash, args, kwargs or 0])
       name = func.__name__ + ' [' + hash + ']'
-      out = storage.store_on_demand(run, name, storage_format=storage_format, invoke_level=invoke_level)
+      out = storage.store_on_demand(run, name, storage_format=storage_format, expire_in=expire_in, invoke_level=invoke_level)
       invoke_level -= 1
       return out
 

@@ -8,7 +8,7 @@ def initialize():
 def get_is_expired(collection_name):
   return collection_name not in store
 
-def store_data(collection_name, data):
+def store_data(collection_name, data, expire_in=None):
   store[sys.intern(collection_name)] = data
   return data
 

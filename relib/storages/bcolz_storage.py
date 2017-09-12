@@ -26,7 +26,7 @@ def insert_data(path, data):
   c = bcolz.carray(data, rootdir=path, mode='w')
   c.flush()
 
-def store_data(collection_name, data):
+def store_data(collection_name, data, expire_in=None):
   path = storage_dir + collection_name
   created = time.time()
   is_tuple = isinstance(data, tuple)

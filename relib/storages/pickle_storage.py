@@ -22,7 +22,7 @@ def get_is_expired(collection_name):
   collection_time = get_collection_timestamp(collection_name)
   return expiration_time >= collection_time
 
-def store_data(collection_name, data):
+def store_data(collection_name, data, expire_in=None):
   created = time.time()
   meta_data = {'created': created}
   with open(storage_dir + collection_name + '.pkl', 'wb') as file:
