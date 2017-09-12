@@ -71,3 +71,10 @@ def memoize(*args, in_memory=False, compress=False, mongo=False, expire_in=None)
     return receive_func(args[0])
 
   return receive_func
+
+def read_only(func, args=[], kwargs={}, in_memory=False, compress=False, mongo=False):
+  storage_format = 'memory' if in_memory else 'bcolz' if compress else 'mongo' if mongo else 'pickle'
+  function_hash = get_function_hash(func)
+  hash = hashing.hash([function_hash, args, kwargs or 0])
+  name = func.__name__ + ' [' + hash + ']'
+  return storage.read_from_store(name, storage_format=storage_format)

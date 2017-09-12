@@ -35,3 +35,11 @@ def store_on_demand(func, name, storage_format='pickle', expire_in=None, invoke_
   else:
     if do_print: log('green', ' REMEMBERED ', invoke_level, name, storage_format)
     return storage.load_data(name)
+
+def read_from_store(name, storage_format='pickle'):
+  init_storage(storage_format)
+  storage = storages[storage_format]
+  try:
+    return storage.load_data(name)
+  except:
+    return None
