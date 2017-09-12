@@ -6,7 +6,10 @@ def distinct(items):
   return list(set(items))
 
 def get_num_args(fn):
-  return fn.__code__.co_argcount
+  try:
+    return fn.__code__.co_argcount
+  except:
+    return 1
 
 def map(items, fn):
   if get_num_args(fn) == 1:
@@ -23,6 +26,16 @@ def reduce(items, reducer, state):
   for item in items:
     state = reducer(state, item)
   return state
+
+def find(items, fn):
+  for item in items:
+    if fn(item):
+      return item
+
+def find_index(items, fn):
+  for i in range(len(items)):
+    if fn(items[i]):
+      return i
 
 def group(items, fn):
   data_by_key = {}

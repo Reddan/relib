@@ -3,6 +3,7 @@
 import sys
 import os
 import time
+from inspect import getargspec
 
 def timer(func):
   def wrapper(*args, **kwargs):
@@ -18,3 +19,14 @@ def silence_stdout():
 
 def restore_stdout():
   sys.stdout = sys.__stdout__
+
+def get_func_arg_list(func):
+  return getargspec(func).args
+
+def silenced(func):
+  def wrapper(*args, **kwargs):
+    silence_stdout()
+    result = func(*args, **kwargs)
+    restore_stdout()
+    return result
+  return wrapper
