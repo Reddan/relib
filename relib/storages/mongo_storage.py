@@ -1,7 +1,10 @@
 import pymongo
 import datetime
+import os
 
-mongo = pymongo.MongoClient('mongodb://localhost/', connect=False).relib
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost')
+mongo_db = os.environ.get('MONGO_MEMOIZE_DB', 'relib')
+mongo = pymongo.MongoClient(mongo_url, connect=False)[mongo_db]
 meta_store = mongo.meta_store
 
 def initialize():
