@@ -7,7 +7,7 @@ setup(
   install_requires=[
     'numpy',
     'bcolz',
-    'pymssql',
+    'pyodbc',
     'pymongo',
     'termcolor'
   ],
