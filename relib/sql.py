@@ -3,9 +3,9 @@ from . import hashing
 import pyodbc
 import decimal
 
-def get_query_hash(query):
+def get_query_hash(query, *args):
   trimmed_query = '\n'.join([q.strip() for q in query.strip().split('\n')])
-  return '_' + hashing.hash(trimmed_query)
+  return '_' + hashing.hash([trimmed_query, args])
 
 def serialize_row(row):
   for i in range(len(row)):
@@ -13,9 +13,9 @@ def serialize_row(row):
       row[i] = float(row[i])
   return row
 
-def execute_query(conn, query):
+def execute_query(conn, *args):
   with conn.cursor() as cursor:
-    cursor.execute(query)
+    cursor.execute(*args)
     columns = [column[0] for column in cursor.description]
 
     def dictify(row):
@@ -35,12 +35,12 @@ def create_instance(**creds):
     creds['password']
   )
 
-  def fetch(query, memoize=False):
+  def fetch(*args, memoize=False):
     def fn():
       with pyodbc.connect(connection_string) as conn:
-        return execute_query(conn, query)
+        return execute_query(conn, *args)
     if memoize:
-      return storage.store_on_demand(fn, name=get_query_hash(query))
+      return storage.store_on_demand(fn, name=get_query_hash(*args))
     else:
       return fn()
 
