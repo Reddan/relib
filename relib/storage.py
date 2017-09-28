@@ -25,7 +25,7 @@ def init_storage(storage_format):
 
 def log(color, title, invoke_level, name, storage_format):
   title_log = colored(title, 'grey', 'on_' + color)
-  invoke_level_log = (' ' * min(1, invoke_level)) + ('──' * invoke_level)
+  invoke_level_log = (' ' * min(1, invoke_level)) + ('--' * invoke_level)
   invoke_level_log = colored(invoke_level_log, color)
   storage_log = colored(storage_format, 'white', attrs=['dark'])
   print(title_log, invoke_level_log, colored(name, color), storage_log)
