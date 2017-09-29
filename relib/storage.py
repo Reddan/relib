@@ -11,17 +11,16 @@ storages = {
   'mongo': mongo_storage
 }
 
-initialized_by_storage = {storage_name: False for storage_name in storages.keys()}
+initialized_by_storage = {storages[key]: False for key in storages}
 
 if is_prod:
   def colored(text, *args, **kwargs):
     return text
 
-def init_storage(storage_format):
-  if not initialized_by_storage[storage_format]:
-    storage = storages[storage_format]
+def init_storage(storage):
+  if not initialized_by_storage[storage]:
     storage.initialize()
-    initialized_by_storage[storage_format] = True
+    initialized_by_storage[storage] = True
 
 def log(color, title, invoke_level, name, storage_format):
   title_log = colored(title, 'grey', 'on_' + color)
@@ -31,8 +30,8 @@ def log(color, title, invoke_level, name, storage_format):
   print(title_log, invoke_level_log, colored(name, color), storage_log)
 
 def store_on_demand(func, name, storage_format='pickle', expire_in=None, invoke_level=0):
-  init_storage(storage_format)
   storage = storages[storage_format]
+  init_storage(storage)
   do_print = storage_format != 'memory'
 
   if storage.get_is_expired(name):
@@ -44,7 +43,7 @@ def store_on_demand(func, name, storage_format='pickle', expire_in=None, invoke_
     return storage.load_data(name)
 
 def read_from_store(name, storage_format='pickle'):
-  init_storage(storage_format)
+  init_storage(storage)
   storage = storages[storage_format]
   try:
     return storage.load_data(name)
