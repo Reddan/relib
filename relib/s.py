@@ -10,32 +10,6 @@ def get_list_of_dominant_values(items, threshold=0.05):
   dominant_values = [val for val in distinct_values if freq_by_value[val] / num_items >= threshold]
   return dominant_values, distinct_values
 
-def create_one_hotter(items, by_key, threshold=0.05):
-  values = [item[by_key] for item in items]
-  dominant_values, distinct_values = get_list_of_dominant_values(values, threshold)
-  exclude_other = len(dominant_values) == len(distinct_values)
-  categories = dominant_values if exclude_other else dominant_values + ['_OTHER_']
-  normal_by_cat = {}
-
-  def create_normal(cat, multiplier):
-    if cat not in normal_by_cat:
-      normal_by_cat[cat] = {}
-    normal = [multiplier if cat == cat2 else 0 for cat2 in categories]
-    normal_by_cat[cat][multiplier] = normal
-    return normal
-
-  def one_hot(item, multiplier=1):
-    cat = item[by_key]
-    cat = cat if cat in dominant_values else '_OTHER_'
-    if cat == '_OTHER_' and exclude_other:
-      raise ValueError('Item contains a non existent category')
-    if cat in normal_by_cat and multiplier in normal_by_cat[cat]:
-      return normal_by_cat[cat][multiplier]
-    else:
-      return create_normal(cat, multiplier)
-
-  return one_hot, categories
-
 def get_one_hotter_categories(items, by_key, threshold=0):
   values = [item[by_key] for item in items]
   dominant_values, distinct_values = get_list_of_dominant_values(values, threshold)
@@ -43,25 +17,38 @@ def get_one_hotter_categories(items, by_key, threshold=0):
   categories = dominant_values if exclude_other else dominant_values + ['_OTHER_']
   return categories
 
-def create_one_hotter2(categories, by_key):
-  normal_by_cat = {}
+def list_dict_distinct_values(items, threshold=0):
+  fields = items[0].keys()
+  return {field: get_one_hotter_categories(items, field, threshold) for field in fields}
 
-  def create_normal(cat, multiplier):
-    if cat not in normal_by_cat:
-      normal_by_cat[cat] = {}
-    normal = [multiplier if cat == cat2 else 0 for cat2 in categories]
-    normal_by_cat[cat][multiplier] = normal
+def create_plain_one_hotter(values):
+  normal_map = {}
+
+  def create_normal(value, multiplier):
+    if value not in normal_map:
+      normal_map[value] = {}
+    normal = [multiplier if value == value2 else 0 for value2 in values]
+    normal_map[value][multiplier] = normal
     return normal
 
-  def one_hot(item, multiplier=1):
-    cat = item[by_key]
-    cat = cat if cat in categories else '_OTHER_'
-    if cat not in categories:
-      raise ValueError('Item contains a non existent category')
-    if cat in normal_by_cat and multiplier in normal_by_cat[cat]:
-      return normal_by_cat[cat][multiplier]
+  def one_hot(_value, multiplier=1):
+    value = _value if _value in values else '_OTHER_'
+    if value in normal_map and multiplier in normal_map[value]:
+      return normal_map[value][multiplier]
+    if value not in values:
+      raise ValueError('Value <' + str(_value) + '> does not exist')
     else:
-      return create_normal(cat, multiplier)
+      return create_normal(value, multiplier)
+
+  return one_hot
+
+def create_one_hotter(values_by_field):
+  fields = sorted(values_by_field.keys())
+  one_hot_by_field = {field: create_plain_one_hotter(values_by_field[field]) for field in fields}
+
+  def one_hot(item, multiplier=1):
+    x = [one_hot_by_field[field](item[field], multiplier) for field in fields]
+    return f.flatten(x)
 
   return one_hot
 
