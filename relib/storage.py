@@ -1,8 +1,5 @@
-import os
 from .storages import memory_storage, pickle_storage, bcolz_storage, mongo_storage
 from termcolor import colored
-
-is_prod = os.environ.get('ENVIRONMENT', None) == 'PROD'
 
 storages = {
   'memory': memory_storage,
@@ -12,10 +9,6 @@ storages = {
 }
 
 initialized_by_storage = {storages[key]: False for key in storages}
-
-if is_prod:
-  def colored(text, *args, **kwargs):
-    return text
 
 def init_storage(storage):
   if not initialized_by_storage[storage]:

@@ -3,34 +3,39 @@ import pickle
 import time
 from pathlib import Path
 
-storage_dir = str(Path.home()) + '/.relib/memoize/pickle/'
+storage_dir = str(Path.home()) + '/.relib/memoize/'
 
 def initialize():
-  imports.ensure_dir(storage_dir)
+  pass
 
-def get_collection_timestamp(collection_name):
+def get_collection_timestamp(path):
   try:
-    with open(storage_dir + collection_name + '_meta.pkl', 'rb') as file:
+    full_path = storage_dir + path
+    with open(full_path + '_meta.pkl', 'rb') as file:
       meta_data = pickle.load(file)
     return meta_data['created']
   except:
     return 0
 
-def get_is_expired(collection_name):
+def get_is_expired(path):
   now = time.time()
   expiration_time = now - (60 * 60 * 24 * 10)
-  collection_time = get_collection_timestamp(collection_name)
+  collection_time = get_collection_timestamp(path)
   return expiration_time >= collection_time
 
-def store_data(collection_name, data, expire_in=None):
+def store_data(path, data, expire_in=None):
   created = time.time()
   meta_data = {'created': created}
-  with open(storage_dir + collection_name + '.pkl', 'wb') as file:
+  full_path = storage_dir + path
+  full_dir = '/'.join(full_path.split('/')[:-1])
+  imports.ensure_dir(full_dir)
+  with open(full_path + '.pkl', 'wb') as file:
     pickle.dump(data, file, -1)
-  with open(storage_dir + collection_name + '_meta.pkl', 'wb') as file:
+  with open(full_path + '_meta.pkl', 'wb') as file:
     pickle.dump(meta_data, file, -1)
   return data
 
-def load_data(collection_name):
-  with open(storage_dir + collection_name + '.pkl', 'rb') as file:
+def load_data(path):
+  full_path = storage_dir + path
+  with open(full_path + '.pkl', 'rb') as file:
     return pickle.load(file)
