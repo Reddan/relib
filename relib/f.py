@@ -83,3 +83,9 @@ def foreach(items, fn):
       fn(items[i])
     else:
       fn(items[i], i)
+
+def merge_dicts(*dicts):
+  result = {}
+  for dictionary in dicts:
+    result.update(dictionary)
+  return result
