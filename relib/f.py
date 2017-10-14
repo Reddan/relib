@@ -1,6 +1,7 @@
 # f for functional
 
 from collections import Counter
+from datetime import timedelta
 
 def distinct(items):
   return list(set(items))
@@ -89,3 +90,8 @@ def merge_dicts(*dicts):
   for dictionary in dicts:
     result.update(dictionary)
   return result
+
+def make_date_range(start_date, end_date):
+  num_days = (end_date - start_date).days
+  date_range = [start_date + timedelta(days=i) for i in range(num_days)]
+  return date_range
