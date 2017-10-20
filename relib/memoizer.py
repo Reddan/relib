@@ -34,7 +34,8 @@ def memoize(opt_func=None, in_memory=False, compress=False, mongo=False, expire_
 
   return receive_func(opt_func) if callable(opt_func) else receive_func
 
-def read_only(func, args=[], kwargs={}, in_memory=False, compress=False, mongo=False):
+def read_only(wrapper_func, args=(), kwargs={}, in_memory=False, compress=False, mongo=False):
+  func = func_by_wrapper[wrapper_func]
   storage_format = 'memory' if in_memory else 'bcolz' if compress else 'mongo' if mongo else 'pickle'
   invoke_path = get_invoke_path(func, get_function_hash(func), args, kwargs)
   return storage.read_from_store(invoke_path, storage_format=storage_format)

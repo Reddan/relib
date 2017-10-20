@@ -36,8 +36,8 @@ def store_on_demand(func, name, storage_format='pickle', expire_in=None, invoke_
     return storage.load_data(name)
 
 def read_from_store(name, storage_format='pickle'):
-  init_storage(storage)
   storage = storages[storage_format]
+  init_storage(storage)
   try:
     return storage.load_data(name)
   except:
