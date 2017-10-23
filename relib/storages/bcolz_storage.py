@@ -13,7 +13,8 @@ def get_collection_timestamp(path):
   try:
     full_path = storage_dir + path
     meta_data = bcolz.open(full_path + '_meta')[:][0]
-    return meta_data['created']
+    # return meta_data['created']
+    return time.time()
   except:
     return 0
 

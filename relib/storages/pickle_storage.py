@@ -13,7 +13,8 @@ def get_collection_timestamp(path):
     full_path = storage_dir + path
     with open(full_path + '_meta.pkl', 'rb') as file:
       meta_data = pickle.load(file)
-    return meta_data['created']
+    # return meta_data['created']
+    return time.time()
   except:
     return 0
 
