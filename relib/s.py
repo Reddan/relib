@@ -52,14 +52,14 @@ def create_one_hotter(values_by_field):
 
   return one_hot
 
-def grid_search(make_params, fn):
+def iterate_grids(make_params, fn):
   initial_params_set = [f.make_combinations_by_dict(param_set) for param_set in make_params]
 
   initial_params = {}
   for params_set in initial_params_set:
     initial_params = {**initial_params, **params_set[0]}
 
-  def grid_search(default_params, params_sets, scores_params_list=[]):
+  def next_iteration(default_params, params_sets, scores_params_list=[]):
     if len(params_sets) == 0:
       return scores_params_list
 
@@ -71,7 +71,16 @@ def grid_search(make_params, fn):
     min_score_index = scores.index(min(scores))
     additional_params = uncleared_set[min_score_index]
     new_default_params = {**default_params, **additional_params}
-    return grid_search(new_default_params, params_sets[1:], scores_params_list)
+    return next_iteration(new_default_params, params_sets[1:], scores_params_list)
 
-  return grid_search(initial_params, initial_params_set)
+  return next_iteration(initial_params, initial_params_set)
 
+def get_model(on_params, grid_data, current_data, grids):
+  scores_params_list = iterate_grids(
+    grids,
+    lambda params: on_params(params, grid_data[0], grid_data[1], grid_data[2], grid_data[3])[1]
+  )
+
+  best_params = scores_params_list[0]['params']
+  model = on_params(best_params, current_data[0], current_data[1], current_data[2], current_data[3])[0]
+  return model
