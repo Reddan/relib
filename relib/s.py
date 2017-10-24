@@ -2,6 +2,7 @@
 
 from . import f
 from collections import Counter
+from pprint import pprint
 
 def get_list_of_dominant_values(items, threshold=0.05):
   num_items = len(items)
@@ -73,11 +74,17 @@ def iterate_grids(make_params, fn):
   return next_iteration(initial_params, initial_params_set)
 
 def get_model(on_params, grid_data, current_data, grids):
+  print('Grid searching')
+
   scores_params_list = iterate_grids(
     grids,
     lambda params: on_params(params, grid_data[0], grid_data[1], grid_data[2], grid_data[3])[1]
   )
 
+
   best_params = scores_params_list[0]['params']
+  print('Best params:')
+  pprint(best_params)
+
   model = on_params(best_params, current_data[0], current_data[1], current_data[2], current_data[3])[0]
   return model
