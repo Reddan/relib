@@ -54,10 +54,7 @@ def create_one_hotter(values_by_field):
 
 def iterate_grids(make_params, fn):
   initial_params_set = [f.make_combinations_by_dict(param_set) for param_set in make_params]
-
-  initial_params = {}
-  for params_set in initial_params_set:
-    initial_params = {**initial_params, **params_set[0]}
+  initial_params = f.merge_dicts(*[params_set[0] for params_set in initial_params_set])
 
   def next_iteration(default_params, params_sets, scores_params_list=[]):
     if len(params_sets) == 0:
