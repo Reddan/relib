@@ -1,6 +1,7 @@
 import os
 import json
 import csv
+from pathlib import Path
 
 def ensure_dir(directory):
   if not os.path.exists(directory):
@@ -29,3 +30,12 @@ def export_csv_from_dict_array(filename, data):
     dict_writer = csv.DictWriter(file, keys)
     dict_writer.writeheader()
     dict_writer.writerows(data)
+
+def find_parent_dir_containing(path, target_name):
+  p = Path(path).absolute()
+  path_names = [x.name for x in p.iterdir()]
+  if target_name in path_names:
+    return str(p)
+  if str(p) == '/':
+    return None
+  return find_parent_dir_containing(p.parent, target_name)
