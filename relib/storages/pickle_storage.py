@@ -1,9 +1,11 @@
+import os
 from .. import imports
 import pickle
 import time
 from pathlib import Path
 
-storage_dir = str(Path.home()) + '/.relib/memoize/'
+default_dir = str(Path.home()) + '/.relib'
+storage_dir = os.environ.get('MEMOIZE_DIR', default_dir) + '/memoize/'
 
 def initialize():
   pass
