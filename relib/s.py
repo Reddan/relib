@@ -1,5 +1,6 @@
 # s for statistics
 
+import numpy as np
 from . import f
 from collections import Counter
 from pprint import pprint
@@ -52,6 +53,64 @@ def create_one_hotter(values_by_field):
     return f.flatten(x)
 
   return one_hot
+
+class AlmostGodEncoder:
+  def __init__(self, matrix):
+    self.values_locations = {}
+    self.one_hot_map = {}
+    sample_row = matrix[0] if matrix else []
+    x_range = range(len(sample_row))
+    y_range = list(range(len(matrix)))
+
+    for x in x_range:
+      values = [matrix[y][x] for y in y_range]
+      distinct_ordered_values = sorted(set(values))
+      shortened_y_range = range(len(distinct_ordered_values))
+
+      self.one_hot_map[x] = {}
+
+      self.values_locations[x] = {
+        distinct_ordered_values[y]: y
+        for y in shortened_y_range
+      }
+
+  def create_one_hot_by_x(self, x, value):
+    index_by_val = self.values_locations[x]
+    one_hot_by_val = self.one_hot_map[x]
+    value_index = index_by_val[value]
+    max_index = len(index_by_val)
+    normal = [1 if value_index == i else 0 for i in range(max_index)]
+    one_hot_by_val[value] = normal
+
+  def get_one_hot_by_x(self, x, value):
+    index_by_val = self.values_locations[x]
+    one_hot_by_val = self.one_hot_map[x]
+
+    if value in index_by_val:
+      if value not in one_hot_by_val:
+        self.create_one_hot_by_x(x, value)
+      return one_hot_by_val[value]
+    else:
+      raise ValueError('Value <' + str(value) + '> does not exist')
+
+  def one_hot(self, matrix):
+    sample_row = matrix[0] if matrix else []
+    x_range = list(range(len(sample_row)))
+
+    return np.array([
+      np.concatenate([self.get_one_hot_by_x(x, row[x]) for x in x_range])
+      for row in matrix
+    ])
+
+  def label_encode(self, matrix):
+    values_locations = self.values_locations
+    sample_row = matrix[0] if matrix else []
+    x_range = list(range(len(sample_row)))
+
+    return np.array([
+      np.array([values_locations[x][row[x]] for x in x_range])
+      for row in matrix
+    ])
 
 def iterate_grids(make_params, fn):
   initial_params_set = [f.make_combinations_by_dict(param_set) for param_set in make_params]
