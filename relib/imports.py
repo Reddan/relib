@@ -5,7 +5,11 @@ from pathlib import Path
 
 def ensure_dir(directory):
   if not os.path.exists(directory):
-    os.makedirs(directory)
+    try:
+      os.makedirs(directory)
+    except OSError as e:
+      if e.errno != os.errno.EEXIST:
+        raise
 
 def import_json(filename):
   with open(filename) as file:
