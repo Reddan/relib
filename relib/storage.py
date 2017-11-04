@@ -32,8 +32,14 @@ def store_on_demand(func, name, storage_format='pickle', expire_in=None, invoke_
     data = func()
     return storage.store_data(name, data, expire_in=expire_in)
   else:
-    if do_print: log('green', ' REMEMBERED ', invoke_level, name, storage_format)
-    return storage.load_data(name)
+    try:
+      data = storage.load_data(name)
+      if do_print: log('green', ' REMEMBERED ', invoke_level, name, storage_format)
+      return data
+    except (EOFError, FileNotFoundError) as e:
+      storage.delete_data(name)
+      print(f'{name} corrupt, removing')
+      return store_on_demand(func, name, storage_format, expire_in, invoke_level)
 
 def read_from_store(name, storage_format='pickle'):
   storage = storages[storage_format]
