@@ -38,7 +38,7 @@ def store_on_demand(func, name, storage_format='pickle', expire_in=None, invoke_
       return data
     except (EOFError, FileNotFoundError) as e:
       storage.delete_data(name)
-      print(f'{name} corrupt, removing')
+      print(name + ' corrupt, removing')
       return store_on_demand(func, name, storage_format, expire_in, invoke_level)
 
 def read_from_store(name, storage_format='pickle'):
