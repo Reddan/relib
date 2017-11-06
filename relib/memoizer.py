@@ -11,7 +11,7 @@ def get_invoke_path(func, function_hash, args, kwargs):
   name = func.__name__
   return file_name + '/' + name + '/' + hash
 
-def memoize(opt_func=None, in_memory=False, compress=False, mongo=False, expire_in=None):
+def memoize(opt_func=None, in_memory=False, compress=False, mongo=False, should_expire=None):
   storage_format = 'memory' if in_memory else 'bcolz' if compress else 'mongo' if mongo else 'pickle'
 
   def receive_func(func):
@@ -24,7 +24,7 @@ def memoize(opt_func=None, in_memory=False, compress=False, mongo=False, expire_
       global invoke_level
       invoke_level += 1
       invoke_path = get_invoke_path(func, function_hash, args, kwargs)
-      out = storage.store_on_demand(run, invoke_path, storage_format=storage_format, expire_in=expire_in, invoke_level=invoke_level)
+      out = storage.store_on_demand(run, invoke_path, storage_format, should_expire, invoke_level)
       invoke_level -= 1
       return out
 

@@ -1,7 +1,7 @@
 import os
 from .. import imports
 import pickle
-import time
+from datetime import datetime
 from pathlib import Path
 
 default_dir = str(Path.home()) + '/.relib'
@@ -11,23 +11,23 @@ def initialize():
   pass
 
 def get_collection_timestamp(path):
-  try:
-    full_path = storage_dir + path
-    with open(full_path + '_meta.pkl', 'rb') as file:
-      meta_data = pickle.load(file)
-    # return meta_data['created']
-    return time.time()
-  except:
-    return 0
+  full_path = storage_dir + path
+  with open(full_path + '_meta.pkl', 'rb') as file:
+    meta_data = pickle.load(file)
+    return meta_data['created']
 
 def get_is_expired(path):
-  now = time.time()
-  expiration_time = now - (60 * 60 * 24 * 10)
-  collection_time = get_collection_timestamp(path)
-  return expiration_time >= collection_time
+  try:
+    get_collection_timestamp(path)
+    return False
+  except:
+    return True
 
-def store_data(path, data, expire_in=None):
-  created = time.time()
+def should_expire(path, expire_fn):
+  return expire_fn(get_collection_timestamp(path))
+
+def store_data(path, data):
+  created = datetime.now()
   meta_data = {'created': created}
   full_path = storage_dir + path
   full_dir = '/'.join(full_path.split('/')[:-1])

@@ -22,24 +22,25 @@ def log(color, title, invoke_level, name, storage_format):
   storage_log = colored(storage_format, 'white', attrs=['dark'])
   print(title_log, invoke_level_log, colored(name, color), storage_log)
 
-def store_on_demand(func, name, storage_format='pickle', expire_in=None, invoke_level=0):
+def store_on_demand(func, name, storage_format='pickle', should_expire=None, invoke_level=0):
   storage = storages[storage_format]
   init_storage(storage)
   do_print = storage_format != 'memory'
+  refresh = storage.get_is_expired(name) or (should_expire and storage.should_expire(name, should_expire))
 
-  if storage.get_is_expired(name):
+  if refresh:
     if do_print: log('blue', ' MEMORIZING ', invoke_level, name, storage_format)
     data = func()
-    return storage.store_data(name, data, expire_in=expire_in)
+    return storage.store_data(name, data)
   else:
     try:
       data = storage.load_data(name)
       if do_print: log('green', ' REMEMBERED ', invoke_level, name, storage_format)
       return data
-    except (EOFError, FileNotFoundError) as e:
+    except (EOFError, FileNotFoundError):
       storage.delete_data(name)
       print(name + ' corrupt, removing')
-      return store_on_demand(func, name, storage_format, expire_in, invoke_level)
+      return store_on_demand(func, name, storage_format, should_expire, invoke_level)
 
 def read_from_store(name, storage_format='pickle'):
   storage = storages[storage_format]

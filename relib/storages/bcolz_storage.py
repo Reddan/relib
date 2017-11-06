@@ -1,7 +1,7 @@
 import os
 from .. import imports
 import bcolz
-import time
+from datetime import datetime
 from pathlib import Path
 import shutil
 
@@ -12,19 +12,19 @@ def initialize():
   pass
 
 def get_collection_timestamp(path):
-  try:
-    full_path = storage_dir + path
-    meta_data = bcolz.open(full_path + '_meta')[:][0]
-    # return meta_data['created']
-    return time.time()
-  except:
-    return 0
+  full_path = storage_dir + path
+  meta_data = bcolz.open(full_path + '_meta')[:][0]
+  return meta_data['created']
 
 def get_is_expired(path):
-  now = time.time()
-  expiration_time = now - (60 * 60 * 24 * 10)
-  collection_time = get_collection_timestamp(path)
-  return expiration_time >= collection_time
+  try:
+    get_collection_timestamp(path)
+    return False
+  except:
+    return True
+
+def should_expire(path, expire_fn):
+  return expire_fn(get_collection_timestamp(path))
 
 def insert_data(path, data):
   c = bcolz.carray(data, rootdir=path, mode='w')
@@ -34,7 +34,7 @@ def store_data(path, data, expire_in=None):
   full_path = storage_dir + path
   full_dir = '/'.join(full_path.split('/')[:-1])
   imports.ensure_dir(full_dir)
-  created = time.time()
+  created = datetime.now()
   is_tuple = isinstance(data, tuple)
   length = len(data)
   meta_data = {'created': created, 'is_tuple': is_tuple, 'length': length}
