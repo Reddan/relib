@@ -11,8 +11,8 @@ def get_invoke_path(func, function_hash, args, kwargs):
   name = func.__name__
   return file_name + '/' + name + '/' + hash
 
-def memoize(opt_func=None, in_memory=False, compress=False, mongo=False, should_expire=None):
-  storage_format = 'memory' if in_memory else 'bcolz' if compress else 'mongo' if mongo else 'pickle'
+def memoize(opt_func=None, in_memory=False, compress=False, bcolz_disk=False, mongo=False, should_expire=None):
+  storage_format = 'memory' if in_memory else 'bcolz' if compress else 'bcolz_disk' if bcolz_disk else 'mongo' if mongo else 'pickle'
 
   def receive_func(func):
     function_hash = get_function_hash(func, func_by_wrapper)
@@ -34,9 +34,9 @@ def memoize(opt_func=None, in_memory=False, compress=False, mongo=False, should_
 
   return receive_func(opt_func) if callable(opt_func) else receive_func
 
-def read_only(wrapper_func, args=(), kwargs={}, in_memory=False, compress=False, mongo=False):
+def read_only(wrapper_func, args=(), kwargs={}, in_memory=False, compress=False, bcolz_disk=False, mongo=False):
   func = func_by_wrapper[wrapper_func]
-  storage_format = 'memory' if in_memory else 'bcolz' if compress else 'mongo' if mongo else 'pickle'
+  storage_format = 'memory' if in_memory else 'bcolz' if compress else 'bcolz_disk' if bcolz_disk else 'mongo' if mongo else 'pickle'
   function_hash = get_function_hash(func, func_by_wrapper)
   invoke_path = get_invoke_path(func, function_hash, args, kwargs)
   return storage.read_from_store(invoke_path, storage_format=storage_format)

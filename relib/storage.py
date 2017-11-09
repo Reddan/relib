@@ -1,10 +1,11 @@
-from .storages import memory_storage, pickle_storage, bcolz_storage, mongo_storage
+from .storages import memory_storage, pickle_storage, bcolz_storage, bcolz_disk_storage, mongo_storage
 from termcolor import colored
 
 storages = {
   'memory': memory_storage,
   'pickle': pickle_storage,
   'bcolz': bcolz_storage,
+  'bcolz_disk': bcolz_disk_storage,
   'mongo': mongo_storage
 }
 
