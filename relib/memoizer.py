@@ -11,8 +11,7 @@ def get_invoke_path(func, function_hash, args, kwargs):
   name = func.__name__
   return file_name + '/' + name + '/' + hash
 
-def memoize(opt_func=None, in_memory=False, compress=False, bcolz_disk=False, mongo=False, should_expire=None):
-  storage_format = 'memory' if in_memory else 'bcolz' if compress else 'bcolz_disk' if bcolz_disk else 'mongo' if mongo else 'pickle'
+def memoize(opt_func=None, format='pickle', should_expire=None):
 
   def receive_func(func):
     function_hash = get_function_hash(func, func_by_wrapper)
@@ -24,7 +23,7 @@ def memoize(opt_func=None, in_memory=False, compress=False, bcolz_disk=False, mo
       global invoke_level
       invoke_level += 1
       invoke_path = get_invoke_path(func, function_hash, args, kwargs)
-      out = storage.store_on_demand(run, invoke_path, storage_format, should_expire, invoke_level)
+      out = storage.store_on_demand(run, invoke_path, format, should_expire, invoke_level)
       invoke_level -= 1
       return out
 
@@ -34,9 +33,8 @@ def memoize(opt_func=None, in_memory=False, compress=False, bcolz_disk=False, mo
 
   return receive_func(opt_func) if callable(opt_func) else receive_func
 
-def read_only(wrapper_func, args=(), kwargs={}, in_memory=False, compress=False, bcolz_disk=False, mongo=False):
+def read_only(wrapper_func, args=(), kwargs={}, format):
   func = func_by_wrapper[wrapper_func]
-  storage_format = 'memory' if in_memory else 'bcolz' if compress else 'bcolz_disk' if bcolz_disk else 'mongo' if mongo else 'pickle'
   function_hash = get_function_hash(func, func_by_wrapper)
   invoke_path = get_invoke_path(func, function_hash, args, kwargs)
-  return storage.read_from_store(invoke_path, storage_format=storage_format)
+  return storage.read_from_store(invoke_path, storage_format=format)
