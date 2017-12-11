@@ -33,7 +33,7 @@ def memoize(opt_func=None, format='pickle', should_expire=None):
 
   return receive_func(opt_func) if callable(opt_func) else receive_func
 
-def read_only(wrapper_func, args=(), kwargs={}, format):
+def read_only(wrapper_func, args=(), kwargs={}, format='pickle'):
   func = func_by_wrapper[wrapper_func]
   function_hash = get_function_hash(func, func_by_wrapper)
   invoke_path = get_invoke_path(func, function_hash, args, kwargs)
