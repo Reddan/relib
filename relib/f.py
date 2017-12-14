@@ -23,6 +23,9 @@ def filter(items, fn):
 def flatten(l):
   return [item for sublist in l for item in sublist]
 
+def flat_map(items, fn):
+  return flatten(map(items, fn))
+
 def reduce(items, reducer, state):
   for item in items:
     state = reducer(state, item)
