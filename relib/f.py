@@ -50,13 +50,6 @@ def group(items, fn):
     data_by_key[key].append(item)
   return data_by_key
 
-def compose_dict(items, fn):
-  d = {}
-  for item in items:
-    key, val = fn(item)
-    d[key] = val
-  return d
-
 def dict_zip(des):
   keys = list(des.keys())
   length = len(des[keys[0]])
@@ -81,14 +74,14 @@ def make_combinations_by_dict(des, keys=None, pairs=[]):
   )
 
 def foreach(items, fn):
-  num_arguments = get_num_args(fn)
+  single_argument = get_num_args(fn) == 1
   for i in range(len(items)):
-    if num_arguments == 1:
+    if single_argument:
       fn(items[i])
     else:
       fn(items[i], i)
 
-def merge_dicts(*dicts):
+def merge_dicts(dicts):
   result = {}
   for dictionary in dicts:
     result.update(dictionary)
