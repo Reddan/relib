@@ -1,9 +1,11 @@
+from sklearn.utils import shuffle
+
 class Raypipe():
   def __init__(self, handlers=[]):
     self.handlers = handlers
 
-  def __add_to_pipeline(self, handler_type, fn):
-    handler = (handler_type, fn)
+  def __add_to_pipeline(self, handler_type, fn, kwargs={}):
+    handler = (handler_type, fn, kwargs)
     return Raypipe(self.handlers + [handler])
 
   def map(self, fn):
@@ -18,20 +20,23 @@ class Raypipe():
   def filter(self, fn):
     return self.__add_to_pipeline('filter', fn)
 
-  def sort(self, fn=None):
-    return self.__add_to_pipeline('sort', fn)
+  def sort(self, fn=None, reverse=False):
+    return self.__add_to_pipeline('sort', fn, dict(reverse=reverse))
 
   def distinct(self):
     return self.__add_to_pipeline('distinct', None)
 
-  def sort_distinct(self, fn=None):
-    return self.distinct().sort(fn)
+  def sort_distinct(self, fn=None, reverse=False):
+    return self.distinct().sort(fn, reverse=reverse)
 
   def do(self, fn):
     return self.__add_to_pipeline('do', fn)
 
+  def shuffle(self, random_state=42):
+    return self.__add_to_pipeline('shuffle', None, dict(random_state=random_state))
+
   def compute(self, values):
-    for handler_type, handler_fn in self.handlers:
+    for handler_type, handler_fn, handler_kwargs in self.handlers:
       if handler_type == 'map':
         values = [handler_fn(val) for val in values]
       elif handler_type == 'flatten':
@@ -39,11 +44,13 @@ class Raypipe():
       elif handler_type == 'filter':
         values = [val for val in values if handler_fn(val)]
       elif handler_type == 'sort':
-        values.sort(key=handler_fn)
+        values.sort(key=handler_fn, reverse=handler_kwargs['reverse'])
       elif handler_type == 'distinct':
         values = list(set(values))
       elif handler_type == 'do':
         values = handler_fn(values)
+      elif handler_type == 'shuffle':
+        values = shuffle(values, random_state=handler_kwargs['random_state'])
     return values
 
 raypipe = Raypipe()
