@@ -36,13 +36,22 @@ def store_data(path, data, expire_in=None):
   imports.ensure_dir(full_dir)
   created = datetime.now()
   is_tuple = isinstance(data, tuple)
-  length = len(data)
-  meta_data = {'created': created, 'is_tuple': is_tuple, 'length': length}
-  insert_data(full_path + '_meta', meta_data)
+  is_dict = isinstance(data, dict)
+  is_not_list = not hasattr(data, '__len__')
+  length = 0 if is_not_list else len(data)
+  # note: storing `length` is redundant when there's `fields`
   if is_tuple:
-    for i in range(length):
+    fields = list(range(length))
+  elif is_dict:
+    fields = sorted(data.keys())
+  else:
+    fields = []
+  meta_data = {'created': created, 'is_tuple': is_tuple, 'is_dict': is_dict, 'is_not_list': is_not_list, 'length': length, 'fields': fields}
+  insert_data(full_path + '_meta', meta_data)
+  if is_tuple or is_dict:
+    for i in range(len(fields)):
       sub_path = path + ' (' + str(i) + ')'
-      store_data(sub_path, data[i])
+      store_data(sub_path, data[fields[i]])
   else:
     insert_data(full_path, data)
   return data
@@ -54,9 +63,15 @@ def load_data(path):
     partitions = range(meta_data['length'])
     data = [load_data(path + ' (' + str(i) + ')') for i in partitions]
     return tuple(data)
+  elif 'is_dict' in meta_data and meta_data['is_dict']:
+    fields = meta_data['fields']
+    partitions = range(len(fields))
+    data = [load_data(path + ' (' + str(i) + ')') for i in partitions]
+    return dict(zip(fields, data))
+  elif 'is_not_list' in meta_data and meta_data['is_not_list']:
+    return bcolz.open(full_path)[0]
   else:
-    data = bcolz.open(full_path)[:]
-    return data
+    return bcolz.open(full_path)[:]
 
 def delete_data(path):
   full_path = storage_dir + path
