@@ -16,12 +16,11 @@ def init_storage(storage):
     storage.initialize()
     initialized_by_storage[storage] = True
 
-def log(color, title, invoke_level, name, storage_format):
+def log(color, title, invoke_level, name):
   title_log = colored(title, 'grey', 'on_' + color)
   invoke_level_log = (' ' * min(1, invoke_level)) + ('──' * invoke_level)
-  invoke_level_log = colored(invoke_level_log, color)
-  storage_log = colored(storage_format, 'white', attrs=['dark'])
-  print(title_log, invoke_level_log, colored(name, color), storage_log)
+  rest_log = colored(invoke_level_log + ' ' + name, color)
+  print(title_log + rest_log)
 
 def store_on_demand(func, name, storage_format='pickle', should_expire=None, invoke_level=0):
   storage = storages[storage_format]
@@ -30,13 +29,13 @@ def store_on_demand(func, name, storage_format='pickle', should_expire=None, inv
   refresh = storage.get_is_expired(name) or (should_expire and storage.should_expire(name, should_expire))
 
   if refresh:
-    if do_print: log('blue', ' MEMORIZING ', invoke_level, name, storage_format)
+    if do_print: log('blue', ' MEMORIZING ', invoke_level, name)
     data = func()
     return storage.store_data(name, data)
   else:
     try:
       data = storage.load_data(name)
-      if do_print: log('green', ' REMEMBERED ', invoke_level, name, storage_format)
+      if do_print: log('green', ' REMEMBERED ', invoke_level, name)
       return data
     except (EOFError, FileNotFoundError):
       storage.delete_data(name)
