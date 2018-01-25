@@ -1,4 +1,3 @@
-from . import storage
 from . import hashing
 import pyodbc
 import decimal
@@ -35,13 +34,8 @@ def create_instance(**creds):
     creds['password']
   )
 
-  def fetch(*args, memoize=False):
-    def fn():
-      with pyodbc.connect(connection_string) as conn:
-        return execute_query(conn, *args)
-    if memoize:
-      return storage.store_on_demand(fn, name=get_query_hash(*args))
-    else:
-      return fn()
+  def fetch(*args):
+    with pyodbc.connect(connection_string) as conn:
+      return execute_query(conn, *args)
 
   return fetch
