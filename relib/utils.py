@@ -12,7 +12,7 @@ class PickleableKerasModel():
     with open(tmp_path, 'rb') as file:
       self.wrapped_model = BytesIO(file.read())
 
-  def unwrap():
+  def unwrap(self):
     from keras.models import load_model
     tmp_path = get_tmp_path()
     with open(tmp_path, 'wb') as file:
