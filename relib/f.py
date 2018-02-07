@@ -54,13 +54,19 @@ def dict_zip(des):
   keys = list(des.keys())
   length = len(des[keys[0]])
 
-  def make_d(index):
-    d = {}
-    for key in keys:
-      d[key] = des[key][index]
-    return d
+  return [
+    {
+      key: des[key][i]
+      for key in keys
+    }
+    for i in range(length)
+  ]
 
-  return map(range(length), make_d)
+def dict_from(keys, values):
+  return {
+    keys[i]: values[i]
+    for i in range(len(keys))
+  }
 
 def make_combinations_by_dict(des, keys=None, pairs=[]):
   keys = sorted(des.keys()) if keys == None else keys
