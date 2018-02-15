@@ -1,3 +1,4 @@
+import numpy as np
 from sklearn.utils import shuffle
 
 class Raypipe():
@@ -35,6 +36,9 @@ class Raypipe():
   def shuffle(self, random_state=42):
     return self.__add_to_pipeline('shuffle', None, dict(random_state=random_state))
 
+  def to_numpy():
+    return self.__add_to_pipeline('to_numpy', None)
+
   def compute(self, values):
     for handler_type, handler_fn, handler_kwargs in self.handlers:
       if handler_type == 'map':
@@ -51,6 +55,8 @@ class Raypipe():
         values = handler_fn(values)
       elif handler_type == 'shuffle':
         values = shuffle(values, random_state=handler_kwargs['random_state'])
+      elif handler_type == 'to_numpy':
+        values = np.array(values)
     return values
 
 raypipe = Raypipe()
