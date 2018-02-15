@@ -134,6 +134,16 @@ class MinMaxer():
       x = x.reshape(org_shape)
     return x
 
+  def inverse_transform(self, x):
+    org_shape = x.shape
+    target_shape = self.to_target_shape(org_shape)
+    if target_shape != org_shape:
+      x = x.reshape(target_shape)
+    x = (x - self.min) / self.scale
+    if target_shape != org_shape:
+      x = x.reshape(org_shape)
+    return x
+
   def to_target_shape(self, shape):
     if len(shape) == 1:
       return (-1, 1)
