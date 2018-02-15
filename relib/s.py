@@ -112,6 +112,18 @@ class AlmostGodEncoder:
       for row in matrix
     ])
 
+class MinMaxer():
+  def __init__(self, x):
+    data_min = np.min(x, axis=0)
+    data_max = np.max(x, axis=0)
+    data_range = data_max - data_min
+    data_range[data_range == 0.0] = 1.0
+    self.scale = 1 / data_range
+    self.min = -data_min * self.scale
+
+  def transform(self, x):
+    return x * self.scale + self.min
+
 def iterate_grids(make_params, fn):
   initial_params_set = [f.make_combinations_by_dict(param_set) for param_set in make_params]
   initial_params = f.merge_dicts(*[params_set[0] for params_set in initial_params_set])
@@ -139,7 +151,6 @@ def get_model(on_params, grid_data, current_data, grids):
     grids,
     lambda params: on_params(params, grid_data[0], grid_data[1], grid_data[2], grid_data[3])[1]
   )
-
 
   best_params = scores_params_list[0]['params']
   print('Best params:')
