@@ -114,6 +114,9 @@ class AlmostGodEncoder:
 
 class MinMaxer():
   def __init__(self, x):
+    target_shape = self.to_target_shape(x.shape)
+    if target_shape != x.shape:
+      x = x.reshape(target_shape)
     data_min = np.min(x, axis=0)
     data_max = np.max(x, axis=0)
     data_range = data_max - data_min
@@ -122,7 +125,21 @@ class MinMaxer():
     self.min = -data_min * self.scale
 
   def transform(self, x):
-    return x * self.scale + self.min
+    org_shape = x.shape
+    target_shape = self.to_target_shape(org_shape)
+    if target_shape != org_shape:
+      x = x.reshape(target_shape)
+    x = x * self.scale + self.min
+    if target_shape != org_shape:
+      x = x.reshape(org_shape)
+    return x
+
+  def to_target_shape(self, shape):
+    if len(shape) == 1:
+      return (-1, 1)
+    if len(shape) > 2:
+      return (-1, shape[-1])
+    return shape
 
 def iterate_grids(make_params, fn):
   initial_params_set = [f.make_combinations_by_dict(param_set) for param_set in make_params]
