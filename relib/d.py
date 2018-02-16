@@ -2,16 +2,32 @@
 
 import sys
 import os
-import time
+from time import time as timestamp
 from inspect import getargspec
+from termcolor import colored
+
+id = 0
+
+class measure_duration:
+  def __init__(self, name):
+    self.name = name
+    self.start = timestamp()
+
+  def __enter__(self):
+    pass
+
+  def __exit__(self, *_):
+    duration = round(timestamp() - self.start, 4)
+    text = '{}: {} seconds'.format(self.name, duration)
+    print(colored(text, attrs=['dark']))
 
 def timer(func):
   def wrapper(*args, **kwargs):
-    start = time.time()
-    result = func(*args, **kwargs)
-    end = time.time()
-    print('Ran {.__name__} in {} seconds'.format(func, end - start))
-    return result
+    global id
+    name = func.__name__ + '[' + str(id) + ']'
+    id += 1
+    with measure_duration(name):
+      return func(*args, **kwargs)
   return wrapper
 
 def silence_stdout():
