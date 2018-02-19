@@ -114,13 +114,16 @@ class AlmostGodEncoder:
 
 class MinMaxer():
   def __init__(self, x):
-    x = x.reshape(self.to_target_shape(x.shape))
-    data_min = np.min(x, axis=0)
-    data_max = np.max(x, axis=0)
-    data_range = data_max - data_min
+    if type(x[0]) == MinMaxer:
+      x = np.vstack([[minmin.data_min, minmin.data_max] for minmax in x])
+    else:
+      x = x.reshape(self.to_target_shape(x.shape))
+    self.data_min = np.min(x, axis=0)
+    self.data_max = np.max(x, axis=0)
+    data_range = self.data_max - self.data_min
     data_range[data_range == 0.0] = 1.0
     self.scale = 1 / data_range
-    self.min = -data_min * self.scale
+    self.min = -self.data_min * self.scale
 
   def transform(self, x):
     org_shape = x.shape
