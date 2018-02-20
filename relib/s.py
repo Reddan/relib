@@ -115,7 +115,7 @@ class AlmostGodEncoder:
 class MinMaxer():
   def __init__(self, x):
     if type(x[0]) == MinMaxer:
-      x = np.vstack([[minmin.data_min, minmin.data_max] for minmax in x])
+      x = np.vstack([[minmaxer.data_min, minmaxer.data_max] for minmaxer in x])
     else:
       x = x.reshape(self.to_target_shape(x.shape))
     self.data_min = np.min(x, axis=0)
