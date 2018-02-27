@@ -2,14 +2,14 @@ from setuptools import setup
 
 setup(
   name='relib',
-  version='0.1',
   packages=['relib'],
+  version='0.1',
+  author='Hampus Hallman',
   install_requires=[
     'numpy',
     'bcolz',
-    'pyodbc',
-    'pymongo',
     'termcolor'
   ],
-  zip_safe=False
+  zip_safe=False,
+  url='https://github.com/Reddan/relib',
 )

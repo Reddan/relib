@@ -7,19 +7,24 @@ from inspect import getargspec
 from termcolor import colored
 
 id = 0
+active_mds = []
 
 class measure_duration:
   def __init__(self, name):
     self.name = name
     self.start = timestamp()
+    active_mds.append(self)
 
   def __enter__(self):
     pass
 
   def __exit__(self, *_):
     duration = round(timestamp() - self.start, 4)
+    indent_level = len(active_mds) - 1
+    indentatation = ('──' * indent_level) + (' ' * (indent_level > 0))
     text = '{}: {} seconds'.format(self.name, duration)
-    print(colored(text, attrs=['dark']))
+    print(colored(indentatation + text, attrs=['dark']))
+    active_mds.remove(self)
 
 def timer(func):
   def wrapper(*args, **kwargs):

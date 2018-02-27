@@ -1,11 +1,15 @@
-import pymongo
 from datetime import datetime
 import os
 
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost')
 mongo_db = os.environ.get('MONGO_MEMOIZE_DB', 'relib')
-mongo = pymongo.MongoClient(mongo_url, connect=False)[mongo_db]
-meta_store = mongo.meta_store
+mongo, meta_store = None, None
+
+def initialize():
+  import pymongo
+  global mongo, meta_store
+  mongo = pymongo.MongoClient(mongo_url, connect=False)[mongo_db]
+  meta_store = mongo.meta_store
 
 def initialize():
   pass

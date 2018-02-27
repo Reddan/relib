@@ -1,5 +1,4 @@
 from . import hashing
-import pyodbc
 import decimal
 
 def get_query_hash(query, *args):
@@ -35,6 +34,8 @@ def create_instance(**creds):
   )
 
   def fetch(*args):
+    import pyodbc
+
     with pyodbc.connect(connection_string) as conn:
       return execute_query(conn, *args)
 
