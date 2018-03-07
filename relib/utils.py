@@ -1,10 +1,9 @@
+import tempfile
 from io import BytesIO
-from random import random
 from copy import copy
 
 def get_tmp_path():
-  file_name = str(random())[2:]
-  return '/tmp/' + file_name
+  return tempfile.mkstemp()[1]
 
 class PickleableKerasModel():
   def __init__(self, model):
