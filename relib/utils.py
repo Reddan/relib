@@ -1,4 +1,5 @@
 import tempfile
+import os
 from io import BytesIO
 from copy import copy
 from subprocess import call
@@ -27,6 +28,8 @@ class TerminalPlot():
     plt.savefig(tmp_path)
     with open(tmp_path, 'rb') as file:
       self.wrapped_plot = BytesIO(file.read())
+    os.remove(tmp_path)
+    plt.close()
 
   def show(self):
     tmp_path = get_tmp_path() + '.png'
@@ -34,3 +37,4 @@ class TerminalPlot():
       data = copy(self.wrapped_plot).read()
       file.write(data)
     call(['imgcat', tmp_path])
+    os.remove(tmp_path)
