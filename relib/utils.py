@@ -33,8 +33,11 @@ class TerminalPlot():
 
   def show(self):
     tmp_path = get_tmp_path() + '.png'
-    with open(tmp_path, 'wb') as file:
-      data = copy(self.wrapped_plot).read()
-      file.write(data)
+    self.savefig(tmp_path)
     call(['imgcat', tmp_path])
     os.remove(tmp_path)
+
+  def savefig(path):
+    with open(path, 'wb') as file:
+      data = copy(self.wrapped_plot).read()
+      file.write(data)
