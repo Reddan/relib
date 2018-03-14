@@ -20,7 +20,7 @@ class PickleableKerasModel():
     with open(tmp_path, 'wb') as file:
       data = copy(self.wrapped_model).read()
       file.write(data)
-      return load_model(tmp_path)
+    return load_model(tmp_path)
 
 class TerminalPlot():
   def __init__(self, plt):
@@ -37,7 +37,7 @@ class TerminalPlot():
     call(['imgcat', tmp_path])
     os.remove(tmp_path)
 
-  def savefig(path):
+  def savefig(self, path):
     with open(path, 'wb') as file:
       data = copy(self.wrapped_plot).read()
       file.write(data)
