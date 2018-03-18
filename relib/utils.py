@@ -1,22 +1,26 @@
 import tempfile
 import os
+import shutil
 from io import BytesIO
 from copy import copy
 from subprocess import call
 from pathlib import Path
 
 def get_tmp_path():
-  return tempfile.mkstemp()[1]
+  tmp_path = tempfile.mkstemp()[1]
+  os.remove(tmp_path)
+  return tmp_path
 
 def get_tmp_directory():
-  dir_path = get_tmp_path()
-  os.remove(dir_path)
+  dir_path = get_tmp_path() + '/'
   os.makedirs(dir_path)
-  return dir_path + '/'
+  return dir_path
 
 class DirectoryBytesIO:
-  def __init__(self, directory):
-    p = Path(directory)
+  def __init__(self, cb):
+    tmp_directory = get_tmp_directory()
+    cb(tmp_directory)
+    p = Path(tmp_directory)
     file_names = [x.name for x in p.iterdir()]
 
     def to_bytes(path):
@@ -24,16 +28,21 @@ class DirectoryBytesIO:
         return BytesIO(file.read())
 
     self.byte_map = {
-      file_name: to_bytes(directory + '/' + file_name)
+      file_name: to_bytes(tmp_directory + '/' + file_name)
       for file_name in file_names
     }
 
-  def unpack(self, directory):
+    shutil.rmtree(tmp_directory)
+
+  def unpack(self, cb):
+    tmp_directory = get_tmp_directory()
     for file_name in self.byte_map:
-      path = directory + '/' + file_name
+      path = tmp_directory + '/' + file_name
       with open(path, 'wb') as file:
         data = copy(self.byte_map[file_name]).read()
         file.write(data)
+    cb(tmp_directory)
+    shutil.rmtree(tmp_directory)
 
 class PickleableKerasModel():
   def __init__(self, model):
