@@ -5,11 +5,12 @@ from io import BytesIO
 from copy import copy
 from subprocess import call
 from pathlib import Path
+from random import random
 
 def get_tmp_path():
-  tmp_path = tempfile.mkstemp()[1]
-  os.remove(tmp_path)
-  return tmp_path
+  tmp_dir = tempfile.gettempdir()
+  destination = 'tmp' + str(random())[2:]
+  return tmp_dir + '/' + destination
 
 def get_tmp_directory():
   dir_path = get_tmp_path() + '/'
