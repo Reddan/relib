@@ -1,2 +1,4 @@
 *.pyc
 relib.egg-info/
+/dist
+/build

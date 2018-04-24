@@ -1,5 +1,4 @@
 import numpy as np
-from sklearn.utils import shuffle
 
 class Raypipe():
   def __init__(self, handlers=[]):
@@ -54,6 +53,7 @@ class Raypipe():
       elif handler_type == 'do':
         values = handler_fn(values)
       elif handler_type == 'shuffle':
+        from sklearn.utils import shuffle
         values = shuffle(values, random_state=handler_kwargs['random_state'])
     return values
 
