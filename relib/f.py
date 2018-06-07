@@ -50,6 +50,16 @@ def group(items, fn):
     data_by_key[key].append(item)
   return data_by_key
 
+def group_map(items, get_key, get_val):
+  data_by_key = {}
+  for item in items:
+    key = get_key(item)
+    val = get_val(item)
+    if key not in data_by_key:
+      data_by_key[key] = []
+    data_by_key[key].append(val)
+  return data_by_key
+
 def dict_zip(des):
   keys = list(des.keys())
   length = len(des[keys[0]])
@@ -97,3 +107,7 @@ def make_date_range(start_date, end_date):
   num_days = (end_date - start_date).days
   date_range = [start_date + timedelta(days=i) for i in range(num_days)]
   return date_range
+
+def intersect(*lists):
+  sets = [set(l) for l in lists]
+  return set.intersection(*sets)
