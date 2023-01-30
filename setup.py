@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
   name='relib',
   packages=['relib'],
-  version='0.1.2',
+  version='0.2.1',
   author='Hampus Hallman',
   author_email='me@hampushallman.com',
   url='https://github.com/Reddan/relib',
@@ -11,7 +11,6 @@ setup(
   install_requires=[
     'termcolor',
     'numpy',
-    'sklearn',
   ],
-  python_requires='~=3.5',
+  python_requires='~=3.10',
 )
