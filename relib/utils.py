@@ -1,20 +1,42 @@
-def distinct(items):
+from typing import TypeVar, Union, Iterable
+
+T = TypeVar('T')
+U = TypeVar('U')
+
+def list_split(l: list[T], sep: T) -> list[list[T]]:
+  l = [sep, *l, sep]
+  split_at = [i for i, x in enumerate(l) if x is sep]
+  ranges = list(zip(split_at[0:-1], split_at[1:]))
+  return [
+    l[start + 1:end]
+    for start, end in ranges
+  ]
+
+def drop_none(l: Iterable[Union[T, None]]) -> list[T]:
+  return [x for x in l if x is not None]
+
+def distinct(items: Iterable[T]) -> list[T]:
   return list(set(items))
 
-def find(iterable):
+def find(iterable: Iterable[T]) -> Union[T, None]:
   return next(iterable, None)
 
 def transpose_dict(des):
-  keys = list(des.keys())
-  length = len(des[keys[0]])
-
-  return [
-    {
-      key: des[key][i]
+  if isinstance(des, list):
+    keys = list(des[0].keys()) if des else []
+    length = len(des)
+    return {
+      key: [des[i][key] for i in range(length)]
       for key in keys
     }
-    for i in range(length)
-  ]
+  elif isinstance(des, dict):
+    keys = list(des.keys())
+    length = len(des[keys[0]]) if keys else 0
+    return [
+      {key: des[key][i] for key in keys}
+      for i in range(length)
+    ]
+  raise ValueError('transpose_dict only accepts dict or list')
 
 def make_combinations_by_dict(des, keys=None, pairs=[]):
   keys = sorted(des.keys()) if keys == None else keys
@@ -23,44 +45,46 @@ def make_combinations_by_dict(des, keys=None, pairs=[]):
   key = keys[0]
   remaining_keys = keys[1:]
   new_pairs = [(key, val) for val in des[key]]
-  return flatten(
-    [make_combinations_by_dict(des, remaining_keys, [pair] + pairs) for pair in new_pairs]
-  )
+  return flatten([
+    make_combinations_by_dict(des, remaining_keys, [pair] + pairs)
+    for pair in new_pairs
+  ])
 
-def merge_dicts(*dicts):
+def merge_dicts(*dicts: dict[T, U]) -> dict[T, U]:
   result = {}
   for dictionary in dicts:
     result.update(dictionary)
   return result
 
-def intersect(*lists):
+def intersect(*lists: list[T]) -> list[T]:
   return set.intersection(*map(set, lists))
 
-def ensure_tuple(value):
+def ensure_tuple(value: Union[T, tuple[T, ...]]) -> tuple[T, ...]:
   if isinstance(value, tuple):
     return value
   return (value,)
 
-def omit(d, keys):
+def omit(d: dict[T, U], keys: Iterable[T]) -> dict[T, U]:
   if keys:
     d = dict(d)
     for key in keys:
       del d[key]
   return d
 
-def pick(d, keys):
+def dict_by(keys: Iterable[T], values: Iterable[U]) -> dict[T, U]:
+  return dict(zip(keys, values))
+
+def tuple_by(d: dict[T, U], keys: Iterable[T]) -> tuple[U, ...]:
   return tuple(d[key] for key in keys)
 
-def flatten(l, iterations=1):
-  if iterations == 0:
-    return l
-  return flatten([value for inner_list in l for value in inner_list], iterations - 1)
+def flatten(l: Iterable[Iterable[T]]) -> list[T]:
+  return [value for inner_list in l for value in inner_list]
 
 def transpose(tuples, default_num_returns=0):
   result = tuple(zip(*tuples))
-  if not result:
-    return ([],) * default_num_returns
-  return tuple(map(list, result))
+  if result:
+    return tuple(map(list, result))
+  return ([],) * default_num_returns
 
 def deepen_dict(d):
   result = {}
@@ -73,7 +97,7 @@ def deepen_dict(d):
     curr[head] = value
   return result
 
-def group(pairs):
+def group(pairs: Iterable[tuple[T, U]]) -> dict[T, list[U]]:
   values_by_key = {}
   for key, value in pairs:
     if key not in values_by_key:
