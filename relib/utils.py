@@ -1,4 +1,5 @@
-from typing import TypeVar, Union, Iterable
+from typing import TypeVar, Union, Iterable, Callable
+import re
 
 T = TypeVar('T')
 U = TypeVar('U')
@@ -82,9 +83,9 @@ def flatten(l: Iterable[Iterable[T]]) -> list[T]:
 
 def transpose(tuples, default_num_returns=0):
   result = tuple(zip(*tuples))
-  if result:
-    return tuple(map(list, result))
-  return ([],) * default_num_returns
+  if not result:
+    return ([],) * default_num_returns
+  return tuple(map(list, result))
 
 def deepen_dict(d):
   result = {}
@@ -112,3 +113,30 @@ def get_at(d, keys, default):
   except KeyError:
     return default
   return d
+
+def sized_partitions(values: Iterable[T], part_size: int) -> list[list[T]]:
+  if not isinstance(values, list):
+    values = list(values)
+  num_parts = (len(values) / part_size).__ceil__()
+  return [values[i * part_size : (i + 1) * part_size] for i in range(num_parts)]
+
+def num_partitions(values: Iterable[T], num_parts: int) -> list[list[T]]:
+  if not isinstance(values, list):
+    values = list(values)
+  part_size = (len(values) / num_parts).__ceil__()
+  return [values[i * part_size : (i + 1) * part_size] for i in range(num_parts)]
+
+StrFilter = Callable[[str], bool]
+
+def str_filterer(
+  include_patterns: list[re.Pattern[str]] = [],
+  exclude_patterns: list[re.Pattern[str]] = [],
+) -> StrFilter:
+  def str_filter(string: str) -> bool:
+    if any(pattern.search(string) for pattern in exclude_patterns):
+      return False
+    if not include_patterns:
+      return True
+    return any(pattern.search(string) for pattern in include_patterns)
+
+  return str_filter
