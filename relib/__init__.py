@@ -13,6 +13,7 @@ from .utils import (
   tuple_by,
   flatten,
   transpose,
+  map_dict,
   deepen_dict,
   group,
   sized_partitions,

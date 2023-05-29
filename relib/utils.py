@@ -3,6 +3,7 @@ import re
 
 T = TypeVar('T')
 U = TypeVar('U')
+K = TypeVar('K')
 
 def list_split(l: list[T], sep: T) -> list[list[T]]:
   l = [sep, *l, sep]
@@ -86,6 +87,9 @@ def transpose(tuples, default_num_returns=0):
   if not result:
     return ([],) * default_num_returns
   return tuple(map(list, result))
+
+def map_dict(fn: Callable[[T], U], d: dict[K, T]) -> dict[K, U]:
+  return {key: fn(value) for key, value in d.items()}
 
 def deepen_dict(d):
   result = {}
