@@ -52,7 +52,7 @@ def make_combinations_by_dict(des, keys=None, pairs=[]):
     for pair in new_pairs
   ])
 
-def merge_dicts(*dicts: dict[T, U]) -> dict[T, U]:
+def merge_dicts(*dicts: dict[K, T]) -> dict[K, T]:
   result = {}
   for dictionary in dicts:
     result.update(dictionary)
@@ -66,17 +66,17 @@ def ensure_tuple(value: Union[T, tuple[T, ...]]) -> tuple[T, ...]:
     return value
   return (value,)
 
-def omit(d: dict[T, U], keys: Iterable[T]) -> dict[T, U]:
+def omit(d: dict[K, T], keys: Iterable[K]) -> dict[K, T]:
   if keys:
     d = dict(d)
     for key in keys:
       del d[key]
   return d
 
-def dict_by(keys: Iterable[T], values: Iterable[U]) -> dict[T, U]:
+def dict_by(keys: Iterable[K], values: Iterable[T]) -> dict[K, T]:
   return dict(zip(keys, values))
 
-def tuple_by(d: dict[T, U], keys: Iterable[T]) -> tuple[U, ...]:
+def tuple_by(d: dict[K, T], keys: Iterable[K]) -> tuple[T, ...]:
   return tuple(d[key] for key in keys)
 
 def flatten(l: Iterable[Iterable[T]]) -> list[T]:
@@ -102,7 +102,7 @@ def deepen_dict(d):
     curr[head] = value
   return result
 
-def group(pairs: Iterable[tuple[T, U]]) -> dict[T, list[U]]:
+def group(pairs: Iterable[tuple[K, T]]) -> dict[K, list[T]]:
   values_by_key = {}
   for key, value in pairs:
     if key not in values_by_key:
@@ -122,13 +122,13 @@ def sized_partitions(values: Iterable[T], part_size: int) -> list[list[T]]:
   if not isinstance(values, list):
     values = list(values)
   num_parts = (len(values) / part_size).__ceil__()
-  return [values[i * part_size : (i + 1) * part_size] for i in range(num_parts)]
+  return [values[i * part_size:(i + 1) * part_size] for i in range(num_parts)]
 
 def num_partitions(values: Iterable[T], num_parts: int) -> list[list[T]]:
   if not isinstance(values, list):
     values = list(values)
   part_size = (len(values) / num_parts).__ceil__()
-  return [values[i * part_size : (i + 1) * part_size] for i in range(num_parts)]
+  return [values[i * part_size:(i + 1) * part_size] for i in range(num_parts)]
 
 StrFilter = Callable[[str], bool]
 
