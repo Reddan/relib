@@ -1,4 +1,5 @@
 from typing import TypeVar, Union, Iterable, Callable
+import numpy as np
 import re
 
 T = TypeVar('T')
@@ -21,7 +22,7 @@ def distinct(items: Iterable[T]) -> list[T]:
   return list(set(items))
 
 def find(iterable: Iterable[T]) -> Union[T, None]:
-  return next(iterable, None)
+  return next(iter(iterable), None)
 
 def transpose_dict(des):
   if isinstance(des, list):
@@ -58,13 +59,11 @@ def merge_dicts(*dicts: dict[K, T]) -> dict[K, T]:
     result.update(dictionary)
   return result
 
-def intersect(*lists: list[T]) -> list[T]:
-  return set.intersection(*map(set, lists))
+def intersect(*lists: Iterable[T]) -> list[T]:
+  return list(set.intersection(*map(set, lists)))
 
 def ensure_tuple(value: Union[T, tuple[T, ...]]) -> tuple[T, ...]:
-  if isinstance(value, tuple):
-    return value
-  return (value,)
+  return value if isinstance(value, tuple) else (value,)
 
 def omit(d: dict[K, T], keys: Iterable[K]) -> dict[K, T]:
   if keys:
@@ -129,6 +128,32 @@ def num_partitions(values: Iterable[T], num_parts: int) -> list[list[T]]:
     values = list(values)
   part_size = (len(values) / num_parts).__ceil__()
   return [values[i * part_size:(i + 1) * part_size] for i in range(num_parts)]
+
+def _cat_tile(cats, n_tile):
+    return cats[np.tile(np.arange(len(cats)), n_tile)]
+
+def df_from_array(
+  value_cols: dict[str, np.ndarray],
+  dim_labels: list[tuple[str, list[Union[str, int, float]]]],
+  indexed=False,
+):
+  import pandas as pd
+  dim_names = [name for name, _ in dim_labels]
+  dim_sizes = np.array([len(labels) for _, labels in dim_labels])
+  assert all(array.shape == tuple(dim_sizes) for array in value_cols.values())
+  array_offsets = [
+    (dim_sizes[i + 1:].prod(), dim_sizes[:i].prod())
+    for i in range(len(dim_sizes))
+  ]
+  category_cols = {
+    dim: _cat_tile(pd.Categorical(labels).repeat(repeats), tiles)
+    for dim, labels, (repeats, tiles) in zip(dim_names, dim_labels, array_offsets)
+  }
+  value_cols = {name: array.reshape(-1) for name, array in value_cols.items()}
+  df = pd.DataFrame({**category_cols, **value_cols}, copy=False)
+  if indexed:
+    df = df.set_index(dim_names)
+  return df
 
 StrFilter = Callable[[str], bool]
 

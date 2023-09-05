@@ -18,6 +18,7 @@ from .utils import (
   group,
   sized_partitions,
   num_partitions,
+  df_from_array,
   StrFilter,
   str_filterer,
 )
