@@ -1,4 +1,5 @@
 from typing import TypeVar, Union, Iterable, Callable
+from itertools import chain
 import numpy as np
 import re
 
@@ -54,16 +55,19 @@ def make_combinations_by_dict(des, keys=None, pairs=[]):
   ])
 
 def merge_dicts(*dicts: dict[K, T]) -> dict[K, T]:
-  result = {}
-  for dictionary in dicts:
-    result.update(dictionary)
-  return result
+  output = {}
+  for d in dicts:
+    output.update(d)
+  return output
 
 def intersect(*lists: Iterable[T]) -> list[T]:
   return list(set.intersection(*map(set, lists)))
 
 def ensure_tuple(value: Union[T, tuple[T, ...]]) -> tuple[T, ...]:
   return value if isinstance(value, tuple) else (value,)
+
+def key_of(dicts: Iterable[dict[T, U]], key: T) -> list[U]:
+  return [d[key] for d in dicts]
 
 def omit(d: dict[K, T], keys: Iterable[K]) -> dict[K, T]:
   if keys:
@@ -72,6 +76,9 @@ def omit(d: dict[K, T], keys: Iterable[K]) -> dict[K, T]:
       del d[key]
   return d
 
+def pick(d: dict[K, T], keys: Iterable[K]) -> dict[K, T]:
+  return {key: d[key] for key in keys}
+
 def dict_by(keys: Iterable[K], values: Iterable[T]) -> dict[K, T]:
   return dict(zip(keys, values))
 
@@ -79,27 +86,27 @@ def tuple_by(d: dict[K, T], keys: Iterable[K]) -> tuple[T, ...]:
   return tuple(d[key] for key in keys)
 
 def flatten(l: Iterable[Iterable[T]]) -> list[T]:
-  return [value for inner_list in l for value in inner_list]
+  return list(chain.from_iterable(l))
 
 def transpose(tuples, default_num_returns=0):
-  result = tuple(zip(*tuples))
-  if not result:
+  output = tuple(zip(*tuples))
+  if not output:
     return ([],) * default_num_returns
-  return tuple(map(list, result))
+  return tuple(map(list, output))
 
 def map_dict(fn: Callable[[T], U], d: dict[K, T]) -> dict[K, U]:
   return {key: fn(value) for key, value in d.items()}
 
 def deepen_dict(d):
-  result = {}
+  output = {}
   for (*tail, head), value in d.items():
-    curr = result
+    curr = output
     for key in tail:
       if key not in curr:
         curr[key] = {}
       curr = curr[key]
     curr[head] = value
-  return result
+  return output
 
 def group(pairs: Iterable[tuple[K, T]]) -> dict[K, list[T]]:
   values_by_key = {}
