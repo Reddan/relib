@@ -22,8 +22,13 @@ def drop_none(l: Iterable[Union[T, None]]) -> list[T]:
 def distinct(items: Iterable[T]) -> list[T]:
   return list(set(items))
 
-def find(iterable: Iterable[T]) -> Union[T, None]:
+def first(iterable: Iterable[T]) -> Union[T, None]:
   return next(iter(iterable), None)
+
+def move_value(l: Iterable[T], from_i: int, to_i: int) -> list[T]:
+  l = list(l)
+  l.insert(to_i, l.pop(from_i))
+  return l
 
 def transpose_dict(des):
   if isinstance(des, list):
