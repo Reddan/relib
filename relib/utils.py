@@ -1,4 +1,4 @@
-from typing import TypeVar, Union, Iterable, Callable
+from typing import TypeVar, Union, Iterable, Callable, Any, cast, overload
 from itertools import chain
 import numpy as np
 import re
@@ -6,6 +6,11 @@ import re
 T = TypeVar('T')
 U = TypeVar('U')
 K = TypeVar('K')
+K1, K2, K3, K4, K5, K6 = TypeVar('K1'), TypeVar('K2'), TypeVar('K3'), TypeVar('K4'), TypeVar('K5'), TypeVar('K6')
+
+def non_none(obj: Union[T, None]) -> T:
+  assert obj is not None
+  return obj
 
 def list_split(l: list[T], sep: T) -> list[list[T]]:
   l = [sep, *l, sep]
@@ -60,10 +65,10 @@ def make_combinations_by_dict(des, keys=None, pairs=[]):
   ])
 
 def merge_dicts(*dicts: dict[K, T]) -> dict[K, T]:
-  output = {}
+  result = {}
   for d in dicts:
-    output.update(d)
-  return output
+    result.update(d)
+  return result
 
 def intersect(*lists: Iterable[T]) -> list[T]:
   return list(set.intersection(*map(set, lists)))
@@ -102,7 +107,25 @@ def transpose(tuples, default_num_returns=0):
 def map_dict(fn: Callable[[T], U], d: dict[K, T]) -> dict[K, U]:
   return {key: fn(value) for key, value in d.items()}
 
-def deepen_dict(d):
+@overload
+def deepen_dict(d: dict[tuple[K1], U]) -> dict[K1, U]: ...
+
+@overload
+def deepen_dict(d: dict[tuple[K1, K2], U]) -> dict[K1, dict[K2, U]]: ...
+
+@overload
+def deepen_dict(d: dict[tuple[K1, K2, K3], U]) -> dict[K1, dict[K2, dict[K3, U]]]: ...
+
+@overload
+def deepen_dict(d: dict[tuple[K1, K2, K3, K4], U]) -> dict[K1, dict[K2, dict[K3, dict[K4, U]]]]: ...
+
+@overload
+def deepen_dict(d: dict[tuple[K1, K2, K3, K4, K5], U]) -> dict[K1, dict[K2, dict[K3, dict[K4, dict[K5, U]]]]]: ...
+
+@overload
+def deepen_dict(d: dict[tuple[K1, K2, K3, K4, K5, K6], U]) -> dict[K1, dict[K2, dict[K3, dict[K4, dict[K5, dict[K6, U]]]]]]: ...
+
+def deepen_dict(d: dict[tuple[Any, ...], Any]) -> dict:
   output = {}
   for (*tail, head), value in d.items():
     curr = output
@@ -121,13 +144,13 @@ def group(pairs: Iterable[tuple[K, T]]) -> dict[K, list[T]]:
     values_by_key[key].append(value)
   return values_by_key
 
-def get_at(d, keys, default):
+def get_at(d: dict, keys: Iterable[Any], default: T) -> T:
   try:
     for key in keys:
       d = d[key]
   except KeyError:
     return default
-  return d
+  return cast(Any, d)
 
 def sized_partitions(values: Iterable[T], part_size: int) -> list[list[T]]:
   if not isinstance(values, list):
@@ -142,7 +165,7 @@ def num_partitions(values: Iterable[T], num_parts: int) -> list[list[T]]:
   return [values[i * part_size:(i + 1) * part_size] for i in range(num_parts)]
 
 def _cat_tile(cats, n_tile):
-    return cats[np.tile(np.arange(len(cats)), n_tile)]
+  return cats[np.tile(np.arange(len(cats)), n_tile)]
 
 def df_from_array(
   value_cols: dict[str, np.ndarray],

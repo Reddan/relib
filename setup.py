@@ -3,7 +3,7 @@ from setuptools import setup
 setup(
   name='relib',
   packages=['relib'],
-  version='1.0.6',
+  version='1.0.7',
   author='Hampus Hallman',
   author_email='me@hampushallman.com',
   url='https://github.com/Reddan/relib',
