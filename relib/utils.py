@@ -65,6 +65,8 @@ def make_combinations_by_dict(des, keys=None, pairs=[]):
   ])
 
 def merge_dicts(*dicts: dict[K, T]) -> dict[K, T]:
+  if len(dicts) == 1:
+    return dicts[0]
   result = {}
   for d in dicts:
     result.update(d)
