@@ -1,4 +1,4 @@
-from typing import TypeVar, Union, Iterable, Callable, Any, cast, overload
+from typing import TypeVar, Iterable, Callable, Any, cast, overload
 from itertools import chain
 import numpy as np
 import re
@@ -8,7 +8,7 @@ U = TypeVar('U')
 K = TypeVar('K')
 K1, K2, K3, K4, K5, K6 = TypeVar('K1'), TypeVar('K2'), TypeVar('K3'), TypeVar('K4'), TypeVar('K5'), TypeVar('K6')
 
-def non_none(obj: Union[T, None]) -> T:
+def non_none(obj: T | None) -> T:
   assert obj is not None
   return obj
 
@@ -21,13 +21,13 @@ def list_split(l: list[T], sep: T) -> list[list[T]]:
     for start, end in ranges
   ]
 
-def drop_none(l: Iterable[Union[T, None]]) -> list[T]:
+def drop_none(l: Iterable[T | None]) -> list[T]:
   return [x for x in l if x is not None]
 
 def distinct(items: Iterable[T]) -> list[T]:
   return list(set(items))
 
-def first(iterable: Iterable[T]) -> Union[T, None]:
+def first(iterable: Iterable[T]) -> T | None:
   return next(iter(iterable), None)
 
 def move_value(l: Iterable[T], from_i: int, to_i: int) -> list[T]:
@@ -75,7 +75,7 @@ def merge_dicts(*dicts: dict[K, T]) -> dict[K, T]:
 def intersect(*lists: Iterable[T]) -> list[T]:
   return list(set.intersection(*map(set, lists)))
 
-def ensure_tuple(value: Union[T, tuple[T, ...]]) -> tuple[T, ...]:
+def ensure_tuple(value: T | tuple[T, ...]) -> tuple[T, ...]:
   return value if isinstance(value, tuple) else (value,)
 
 def key_of(dicts: Iterable[dict[T, U]], key: T) -> list[U]:
@@ -155,6 +155,7 @@ def get_at(d: dict, keys: Iterable[Any], default: T) -> T:
   return cast(Any, d)
 
 def sized_partitions(values: Iterable[T], part_size: int) -> list[list[T]]:
+  # "chunk"
   if not isinstance(values, list):
     values = list(values)
   num_parts = (len(values) / part_size).__ceil__()
@@ -171,11 +172,10 @@ def _cat_tile(cats, n_tile):
 
 def df_from_array(
   value_cols: dict[str, np.ndarray],
-  dim_labels: list[tuple[str, list[Union[str, int, float]]]],
+  dim_labels: list[tuple[str, list[str | int | float]]],
   indexed=False,
 ):
   import pandas as pd
-  dim_names = [name for name, _ in dim_labels]
   dim_sizes = np.array([len(labels) for _, labels in dim_labels])
   assert all(array.shape == tuple(dim_sizes) for array in value_cols.values())
   array_offsets = [
@@ -184,12 +184,12 @@ def df_from_array(
   ]
   category_cols = {
     dim: _cat_tile(pd.Categorical(labels).repeat(repeats), tiles)
-    for dim, labels, (repeats, tiles) in zip(dim_names, dim_labels, array_offsets)
+    for (dim, labels), (repeats, tiles) in zip(dim_labels, array_offsets)
   }
   value_cols = {name: array.reshape(-1) for name, array in value_cols.items()}
   df = pd.DataFrame({**category_cols, **value_cols}, copy=False)
   if indexed:
-    df = df.set_index(dim_names)
+    df = df.set_index([name for name, _ in dim_labels])
   return df
 
 StrFilter = Callable[[str], bool]

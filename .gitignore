@@ -1,5 +1,3 @@
-*.pyc
-relib.egg-info/
+__pycache__/
 /dist
-/build
 .DS_Store
