@@ -132,18 +132,14 @@ def deepen_dict(d: dict[tuple[Any, ...], Any]) -> dict:
   for (*tail, head), value in d.items():
     curr = output
     for key in tail:
-      if key not in curr:
-        curr[key] = {}
-      curr = curr[key]
+      curr = curr.setdefault(key, {})
     curr[head] = value
   return output
 
 def group(pairs: Iterable[tuple[K, T]]) -> dict[K, list[T]]:
   values_by_key = {}
   for key, value in pairs:
-    if key not in values_by_key:
-      values_by_key[key] = []
-    values_by_key[key].append(value)
+    values_by_key.setdefault(key, []).append(value)
   return values_by_key
 
 def get_at(d: dict, keys: Iterable[Any], default: T) -> T:

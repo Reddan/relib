@@ -20,6 +20,7 @@ from .utils import (
   map_dict,
   deepen_dict,
   group,
+  get_at,
   sized_partitions,
   num_partitions,
   df_from_array,
