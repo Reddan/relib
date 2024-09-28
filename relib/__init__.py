@@ -1,4 +1,5 @@
 from .utils import (
+  clear_console,
   non_none,
   list_split,
   drop_none,
@@ -19,7 +20,11 @@ from .utils import (
   transpose,
   map_dict,
   deepen_dict,
+  flatten_dict_inner,
+  flatten_dict,
   group,
+  reversed_enumerate,
+  get_at,
   sized_partitions,
   num_partitions,
   df_from_array,

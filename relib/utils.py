@@ -1,12 +1,16 @@
 from typing import TypeVar, Iterable, Callable, Any, cast, overload
 from itertools import chain
 import numpy as np
+import os
 import re
 
 T = TypeVar('T')
 U = TypeVar('U')
 K = TypeVar('K')
 K1, K2, K3, K4, K5, K6 = TypeVar('K1'), TypeVar('K2'), TypeVar('K3'), TypeVar('K4'), TypeVar('K5'), TypeVar('K6')
+
+def clear_console():
+  os.system("cls" if os.name == "nt" else "clear")
 
 def non_none(obj: T | None) -> T:
   assert obj is not None
@@ -129,22 +133,33 @@ def deepen_dict(d: dict[tuple[K1, K2, K3, K4, K5, K6], U]) -> dict[K1, dict[K2, 
 
 def deepen_dict(d: dict[tuple[Any, ...], Any]) -> dict:
   output = {}
+  if () in d:
+    return d[()]
   for (*tail, head), value in d.items():
     curr = output
     for key in tail:
-      if key not in curr:
-        curr[key] = {}
-      curr = curr[key]
+      curr = curr.setdefault(key, {})
     curr[head] = value
   return output
+
+def flatten_dict_inner(d, prefix=()):
+  for key, value in d.items():
+    if not isinstance(value, dict) or value == {}:
+      yield prefix + (key,), value
+    else:
+      yield from flatten_dict_inner(value, prefix + (key,))
+
+def flatten_dict(deep_dict: dict, prefix=()) -> dict:
+  return dict(flatten_dict_inner(deep_dict, prefix))
 
 def group(pairs: Iterable[tuple[K, T]]) -> dict[K, list[T]]:
   values_by_key = {}
   for key, value in pairs:
-    if key not in values_by_key:
-      values_by_key[key] = []
-    values_by_key[key].append(value)
+    values_by_key.setdefault(key, []).append(value)
   return values_by_key
+
+def reversed_enumerate(l: list[T] | tuple[T, ...]) -> Iterable[tuple[int, T]]:
+  return zip(reversed(range(len(l))), reversed(l))
 
 def get_at(d: dict, keys: Iterable[Any], default: T) -> T:
   try:
