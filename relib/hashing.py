@@ -237,7 +237,7 @@ class NumpyHasher(Hasher):
     Hasher.save(self, obj)
 
 
-def hash(obj, hash_name='md5', coerce_mmap=False):
+def hash(obj, hash_name='md5', coerce_mmap=False) -> str:
   """ Quick calculation of a hash to identify uniquely Python objects
     containing numpy arrays.
     Parameters

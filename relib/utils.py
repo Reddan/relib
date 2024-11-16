@@ -1,8 +1,7 @@
-from typing import TypeVar, Iterable, Callable, Any, cast, overload
-from itertools import chain
-import numpy as np
 import os
 import re
+from typing import TypeVar, Iterable, Callable, Any, cast, overload
+from itertools import chain
 
 T = TypeVar('T')
 U = TypeVar('U')
@@ -183,14 +182,16 @@ def num_partitions(values: Iterable[T], num_parts: int) -> list[list[T]]:
   return [values[i * part_size:(i + 1) * part_size] for i in range(num_parts)]
 
 def _cat_tile(cats, n_tile):
+  import numpy as np
   return cats[np.tile(np.arange(len(cats)), n_tile)]
 
 def df_from_array(
-  value_cols: dict[str, np.ndarray],
+  value_cols: dict[str, Any],
   dim_labels: list[tuple[str, list[str | int | float]]],
   indexed=False,
 ):
   import pandas as pd
+  import numpy as np
   dim_sizes = np.array([len(labels) for _, labels in dim_labels])
   assert all(array.shape == tuple(dim_sizes) for array in value_cols.values())
   array_offsets = [

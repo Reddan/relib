@@ -1,11 +1,8 @@
 [project]
 name = "relib"
-version = "1.1.2"
+version = "1.2.0"
 requires-python = ">=3.12"
-dependencies = [
-  "numpy",
-  "termcolor",
-]
+dependencies = []
 authors = [
   {name = "Hampus Hallman"}
 ]

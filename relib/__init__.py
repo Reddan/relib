@@ -31,6 +31,5 @@ from .utils import (
   StrFilter,
   str_filterer,
 )
-from .raypipe import raypipe
 from .hashing import hash
 from .measure_duration import measure_duration

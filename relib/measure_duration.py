@@ -1,5 +1,4 @@
 from time import time
-from termcolor import colored
 
 active_mds = []
 
@@ -16,5 +15,5 @@ class measure_duration:
     depth = len(active_mds) - 1
     indent = ('──' * depth) + (' ' * (depth > 0))
     text = '{}: {} seconds'.format(self.name, duration)
-    print(colored(indent + text, attrs=['dark']))
+    print(indent + text)
     active_mds.remove(self)
