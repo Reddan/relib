@@ -31,5 +31,5 @@ from .utils import (
   StrFilter,
   str_filterer,
 )
-from .hashing import hash
+from .hashing import hash, hash_obj
 from .measure_duration import measure_duration
