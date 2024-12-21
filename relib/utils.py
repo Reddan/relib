@@ -1,12 +1,7 @@
 import os
 import re
-from typing import TypeVar, Iterable, Callable, Any, overload
+from typing import Iterable, Callable, Any, overload
 from itertools import chain
-
-T = TypeVar('T')
-U = TypeVar('U')
-K = TypeVar('K')
-K1, K2, K3, K4, K5, K6 = TypeVar('K1'), TypeVar('K2'), TypeVar('K3'), TypeVar('K4'), TypeVar('K5'), TypeVar('K6')
 
 def clear_console():
   os.system("cls" if os.name == "nt" else "clear")
@@ -14,14 +9,14 @@ def clear_console():
 def console_link(text, url):
   return f"\033]8;;{url}\033\\{text}\033]8;;\033\\"
 
-def non_none(obj: T | None) -> T:
+def non_none[T](obj: T | None) -> T:
   assert obj is not None
   return obj
 
 def as_any(obj: Any) -> Any:
   return obj
 
-def list_split(l: list[T], sep: T) -> list[list[T]]:
+def list_split[T](l: list[T], sep: T) -> list[list[T]]:
   l = [sep, *l, sep]
   split_at = [i for i, x in enumerate(l) if x is sep]
   ranges = list(zip(split_at[0:-1], split_at[1:]))
@@ -30,16 +25,16 @@ def list_split(l: list[T], sep: T) -> list[list[T]]:
     for start, end in ranges
   ]
 
-def drop_none(l: Iterable[T | None]) -> list[T]:
+def drop_none[T](l: Iterable[T | None]) -> list[T]:
   return [x for x in l if x is not None]
 
-def distinct(items: Iterable[T]) -> list[T]:
+def distinct[T](items: Iterable[T]) -> list[T]:
   return list(dict.fromkeys(items))
 
-def first(iterable: Iterable[T]) -> T | None:
+def first[T](iterable: Iterable[T]) -> T | None:
   return next(iter(iterable), None)
 
-def move_value(l: Iterable[T], from_i: int, to_i: int) -> list[T]:
+def move_value[T](l: Iterable[T], from_i: int, to_i: int) -> list[T]:
   l = list(l)
   l.insert(to_i, l.pop(from_i))
   return l
@@ -59,7 +54,7 @@ def transpose_dict(des):
       {key: des[key][i] for key in keys}
       for i in range(length)
     ]
-  raise ValueError('transpose_dict only accepts dict or list')
+  raise ValueError("transpose_dict only accepts dict or list")
 
 def make_combinations_by_dict(des, keys=None, pairs=[]):
   keys = sorted(des.keys()) if keys == None else keys
@@ -73,7 +68,7 @@ def make_combinations_by_dict(des, keys=None, pairs=[]):
     for pair in new_pairs
   ])
 
-def merge_dicts(*dicts: dict[K, T]) -> dict[K, T]:
+def merge_dicts[T, K](*dicts: dict[K, T]) -> dict[K, T]:
   if len(dicts) == 1:
     return dicts[0]
   result = {}
@@ -81,32 +76,32 @@ def merge_dicts(*dicts: dict[K, T]) -> dict[K, T]:
     result.update(d)
   return result
 
-def intersect(*lists: Iterable[T]) -> list[T]:
+def intersect[T](*lists: Iterable[T]) -> list[T]:
   return list(set.intersection(*map(set, lists)))
 
-def ensure_tuple(value: T | tuple[T, ...]) -> tuple[T, ...]:
+def ensure_tuple[T](value: T | tuple[T, ...]) -> tuple[T, ...]:
   return value if isinstance(value, tuple) else (value,)
 
-def key_of(dicts: Iterable[dict[T, U]], key: T) -> list[U]:
+def key_of[T, U](dicts: Iterable[dict[T, U]], key: T) -> list[U]:
   return [d[key] for d in dicts]
 
-def omit(d: dict[K, T], keys: Iterable[K]) -> dict[K, T]:
+def omit[T, K](d: dict[K, T], keys: Iterable[K]) -> dict[K, T]:
   if keys:
     d = dict(d)
     for key in keys:
       del d[key]
   return d
 
-def pick(d: dict[K, T], keys: Iterable[K]) -> dict[K, T]:
+def pick[T, K](d: dict[K, T], keys: Iterable[K]) -> dict[K, T]:
   return {key: d[key] for key in keys}
 
-def dict_by(keys: Iterable[K], values: Iterable[T]) -> dict[K, T]:
+def dict_by[T, K](keys: Iterable[K], values: Iterable[T]) -> dict[K, T]:
   return dict(zip(keys, values))
 
-def tuple_by(d: dict[K, T], keys: Iterable[K]) -> tuple[T, ...]:
+def tuple_by[T, K](d: dict[K, T], keys: Iterable[K]) -> tuple[T, ...]:
   return tuple(d[key] for key in keys)
 
-def flatten(l: Iterable[Iterable[T]]) -> list[T]:
+def flatten[T](l: Iterable[Iterable[T]]) -> list[T]:
   return list(chain.from_iterable(l))
 
 def transpose(tuples, default_num_returns=0):
@@ -115,27 +110,21 @@ def transpose(tuples, default_num_returns=0):
     return ([],) * default_num_returns
   return tuple(map(list, output))
 
-def map_dict(fn: Callable[[T], U], d: dict[K, T]) -> dict[K, U]:
+def map_dict[T, U, K](fn: Callable[[T], U], d: dict[K, T]) -> dict[K, U]:
   return {key: fn(value) for key, value in d.items()}
 
 @overload
-def deepen_dict(d: dict[tuple[K1], U]) -> dict[K1, U]: ...
-
+def deepen_dict[K1, U](d: dict[tuple[K1], U]) -> dict[K1, U]: ...
 @overload
-def deepen_dict(d: dict[tuple[K1, K2], U]) -> dict[K1, dict[K2, U]]: ...
-
+def deepen_dict[K1, K2, U](d: dict[tuple[K1, K2], U]) -> dict[K1, dict[K2, U]]: ...
 @overload
-def deepen_dict(d: dict[tuple[K1, K2, K3], U]) -> dict[K1, dict[K2, dict[K3, U]]]: ...
-
+def deepen_dict[K1, K2, K3, U](d: dict[tuple[K1, K2, K3], U]) -> dict[K1, dict[K2, dict[K3, U]]]: ...
 @overload
-def deepen_dict(d: dict[tuple[K1, K2, K3, K4], U]) -> dict[K1, dict[K2, dict[K3, dict[K4, U]]]]: ...
-
+def deepen_dict[K1, K2, K3, K4, U](d: dict[tuple[K1, K2, K3, K4], U]) -> dict[K1, dict[K2, dict[K3, dict[K4, U]]]]: ...
 @overload
-def deepen_dict(d: dict[tuple[K1, K2, K3, K4, K5], U]) -> dict[K1, dict[K2, dict[K3, dict[K4, dict[K5, U]]]]]: ...
-
+def deepen_dict[K1, K2, K3, K4, K5, U](d: dict[tuple[K1, K2, K3, K4, K5], U]) -> dict[K1, dict[K2, dict[K3, dict[K4, dict[K5, U]]]]]: ...
 @overload
-def deepen_dict(d: dict[tuple[K1, K2, K3, K4, K5, K6], U]) -> dict[K1, dict[K2, dict[K3, dict[K4, dict[K5, dict[K6, U]]]]]]: ...
-
+def deepen_dict[K1, K2, K3, K4, K5, K6, U](d: dict[tuple[K1, K2, K3, K4, K5, K6], U]) -> dict[K1, dict[K2, dict[K3, dict[K4, dict[K5, dict[K6, U]]]]]]: ...
 def deepen_dict(d: dict[tuple[Any, ...], Any]) -> dict:
   output = {}
   if () in d:
@@ -157,16 +146,16 @@ def flatten_dict_inner(d, prefix=()):
 def flatten_dict(deep_dict: dict, prefix=()) -> dict:
   return dict(flatten_dict_inner(deep_dict, prefix))
 
-def group(pairs: Iterable[tuple[K, T]]) -> dict[K, list[T]]:
+def group[T, K](pairs: Iterable[tuple[K, T]]) -> dict[K, list[T]]:
   values_by_key = {}
   for key, value in pairs:
     values_by_key.setdefault(key, []).append(value)
   return values_by_key
 
-def reversed_enumerate(l: list[T] | tuple[T, ...]) -> Iterable[tuple[int, T]]:
+def reversed_enumerate[T](l: list[T] | tuple[T, ...]) -> Iterable[tuple[int, T]]:
   return zip(reversed(range(len(l))), reversed(l))
 
-def get_at(d: dict, keys: Iterable[Any], default: T) -> T:
+def get_at[T](d: dict, keys: Iterable[Any], default: T) -> T:
   try:
     for key in keys:
       d = d[key]
@@ -174,14 +163,14 @@ def get_at(d: dict, keys: Iterable[Any], default: T) -> T:
     return default
   return as_any(d)
 
-def sized_partitions(values: Iterable[T], part_size: int) -> list[list[T]]:
+def sized_partitions[T](values: Iterable[T], part_size: int) -> list[list[T]]:
   # "chunk"
   if not isinstance(values, list):
     values = list(values)
   num_parts = (len(values) / part_size).__ceil__()
   return [values[i * part_size:(i + 1) * part_size] for i in range(num_parts)]
 
-def num_partitions(values: Iterable[T], num_parts: int) -> list[list[T]]:
+def num_partitions[T](values: Iterable[T], num_parts: int) -> list[list[T]]:
   if not isinstance(values, list):
     values = list(values)
   part_size = (len(values) / num_parts).__ceil__()
