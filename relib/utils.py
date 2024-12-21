@@ -1,6 +1,6 @@
 import os
 import re
-from typing import TypeVar, Iterable, Callable, Any, cast, overload
+from typing import TypeVar, Iterable, Callable, Any, overload
 from itertools import chain
 
 T = TypeVar('T')
@@ -11,8 +11,14 @@ K1, K2, K3, K4, K5, K6 = TypeVar('K1'), TypeVar('K2'), TypeVar('K3'), TypeVar('K
 def clear_console():
   os.system("cls" if os.name == "nt" else "clear")
 
+def console_link(text, url):
+  return f"\033]8;;{url}\033\\{text}\033]8;;\033\\"
+
 def non_none(obj: T | None) -> T:
   assert obj is not None
+  return obj
+
+def as_any(obj: Any) -> Any:
   return obj
 
 def list_split(l: list[T], sep: T) -> list[list[T]]:
@@ -28,7 +34,7 @@ def drop_none(l: Iterable[T | None]) -> list[T]:
   return [x for x in l if x is not None]
 
 def distinct(items: Iterable[T]) -> list[T]:
-  return list(set(items))
+  return list(dict.fromkeys(items))
 
 def first(iterable: Iterable[T]) -> T | None:
   return next(iter(iterable), None)
@@ -166,7 +172,7 @@ def get_at(d: dict, keys: Iterable[Any], default: T) -> T:
       d = d[key]
   except KeyError:
     return default
-  return cast(Any, d)
+  return as_any(d)
 
 def sized_partitions(values: Iterable[T], part_size: int) -> list[list[T]]:
   # "chunk"
