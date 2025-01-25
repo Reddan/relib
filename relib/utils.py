@@ -1,13 +1,6 @@
-import os
 import re
 from typing import Iterable, Callable, Any, overload
 from itertools import chain
-
-def clear_console():
-  os.system("cls" if os.name == "nt" else "clear")
-
-def console_link(text, url):
-  return f"\033]8;;{url}\033\\{text}\033]8;;\033\\"
 
 def non_none[T](obj: T | None) -> T:
   assert obj is not None
@@ -25,8 +18,8 @@ def list_split[T](l: list[T], sep: T) -> list[list[T]]:
     for start, end in ranges
   ]
 
-def drop_none[T](l: Iterable[T | None]) -> list[T]:
-  return [x for x in l if x is not None]
+def drop_none[T](iterable: Iterable[T | None]) -> list[T]:
+  return [x for x in iterable if x is not None]
 
 def distinct[T](items: Iterable[T]) -> list[T]:
   return list(dict.fromkeys(items))
@@ -34,8 +27,8 @@ def distinct[T](items: Iterable[T]) -> list[T]:
 def first[T](iterable: Iterable[T]) -> T | None:
   return next(iter(iterable), None)
 
-def move_value[T](l: Iterable[T], from_i: int, to_i: int) -> list[T]:
-  l = list(l)
+def move_value[T](iterable: Iterable[T], from_i: int, to_i: int) -> list[T]:
+  l = list(iterable)
   l.insert(to_i, l.pop(from_i))
   return l
 
@@ -76,8 +69,8 @@ def merge_dicts[T, K](*dicts: dict[K, T]) -> dict[K, T]:
     result.update(d)
   return result
 
-def intersect[T](*lists: Iterable[T]) -> list[T]:
-  return list(set.intersection(*map(set, lists)))
+def intersect[T](*iterables: Iterable[T]) -> list[T]:
+  return list(set.intersection(*map(set, iterables)))
 
 def ensure_tuple[T](value: T | tuple[T, ...]) -> tuple[T, ...]:
   return value if isinstance(value, tuple) else (value,)
@@ -101,8 +94,8 @@ def dict_by[T, K](keys: Iterable[K], values: Iterable[T]) -> dict[K, T]:
 def tuple_by[T, K](d: dict[K, T], keys: Iterable[K]) -> tuple[T, ...]:
   return tuple(d[key] for key in keys)
 
-def flatten[T](l: Iterable[Iterable[T]]) -> list[T]:
-  return list(chain.from_iterable(l))
+def flatten[T](iterable: Iterable[Iterable[T]]) -> list[T]:
+  return list(chain.from_iterable(iterable))
 
 def transpose(tuples, default_num_returns=0):
   output = tuple(zip(*tuples))
@@ -162,6 +155,10 @@ def get_at[T](d: dict, keys: Iterable[Any], default: T) -> T:
   except KeyError:
     return default
   return as_any(d)
+
+def for_each[T](func: Callable[[T], Any], iterable: Iterable[T]) -> None:
+  for item in iterable:
+    func(item)
 
 def sized_partitions[T](values: Iterable[T], part_size: int) -> list[list[T]]:
   # "chunk"
