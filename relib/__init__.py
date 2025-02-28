@@ -31,6 +31,7 @@ from .utils import (
   df_from_array,
   StrFilter,
   str_filterer,
+  roll_tasks,
 )
 from .system import read_json, write_json, clear_console, console_link
 from .hashing import hash, hash_obj

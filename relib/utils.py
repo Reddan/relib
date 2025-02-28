@@ -1,6 +1,7 @@
+import asyncio
 import re
-from typing import Iterable, Callable, Any, overload
 from itertools import chain
+from typing import Any, Awaitable, Callable, Iterable, overload
 
 def non_none[T](obj: T | None) -> T:
   assert obj is not None
@@ -182,8 +183,8 @@ def df_from_array(
   dim_labels: list[tuple[str, list[str | int | float]]],
   indexed=False,
 ):
-  import pandas as pd
   import numpy as np
+  import pandas as pd
   dim_sizes = np.array([len(labels) for _, labels in dim_labels])
   assert all(array.shape == tuple(dim_sizes) for array in value_cols.values())
   array_offsets = [
@@ -214,3 +215,11 @@ def str_filterer(
     return any(pattern.search(string) for pattern in include_patterns)
 
   return str_filter
+
+async def worker(task, semaphore):
+  async with semaphore:
+    return await task
+
+async def roll_tasks[T](tasks: Iterable[Awaitable[T]], workers: int) -> list[T]:
+  semaphore = asyncio.Semaphore(workers)
+  return await asyncio.gather(*(worker(task, semaphore) for task in tasks))
