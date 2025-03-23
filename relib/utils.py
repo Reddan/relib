@@ -1,7 +1,9 @@
-import asyncio
 import re
 from itertools import chain
-from typing import Any, Awaitable, Callable, Iterable, overload
+from typing import Any, Callable, Iterable, overload
+
+def noop() -> None:
+  pass
 
 def non_none[T](obj: T | None) -> T:
   assert obj is not None
@@ -215,11 +217,3 @@ def str_filterer(
     return any(pattern.search(string) for pattern in include_patterns)
 
   return str_filter
-
-async def worker(task, semaphore):
-  async with semaphore:
-    return await task
-
-async def roll_tasks[T](tasks: Iterable[Awaitable[T]], workers: int) -> list[T]:
-  semaphore = asyncio.Semaphore(workers)
-  return await asyncio.gather(*(worker(task, semaphore) for task in tasks))
