@@ -36,10 +36,11 @@ async def roll_tasks[T](tasks: Iterable[Awaitable[T]], workers: int, progress=Fa
   semaphore = asyncio.Semaphore(workers)
   if not progress:
     return await asyncio.gather(*(worker(task, semaphore) for task in tasks))
+
   from tqdm import tqdm
-  assert isinstance(tasks, (list, tuple, set, frozenset, dict))
+  tasks = tasks if isinstance(tasks, list) else list(tasks)
   with tqdm(total=len(tasks)) as pbar:
-    update = lambda: pbar.update(1)
+    update = functools.partial(pbar.update, 1)
     return await asyncio.gather(*(worker(task, semaphore, update) for task in tasks))
 
 def as_async(num_workers=default_num_workers) -> Callable[[Callable[P, R]], Callable[P, Awaitable[R]]]:
