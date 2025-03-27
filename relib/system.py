@@ -11,8 +11,11 @@ from .utils import noop
 P = ParamSpec("P")
 R = TypeVar("R")
 default_num_workers = min(32, (os.cpu_count() or 1) + 4)
+_default_json: Any = {}
 
-def read_json(path: Path) -> Any:
+def read_json(path: Path, default=_default_json) -> Any:
+  if default is not _default_json and not path.exists():
+    return default
   with path.open("r") as f:
     return json.load(f)
 
@@ -35,13 +38,13 @@ async def worker[T](task: Awaitable[T], semaphore: asyncio.Semaphore, update=noo
 async def roll_tasks[T](tasks: Iterable[Awaitable[T]], workers=default_num_workers, progress=False) -> list[T]:
   semaphore = asyncio.Semaphore(workers)
   if not progress:
-    return await asyncio.gather(*(worker(task, semaphore) for task in tasks))
+    return await asyncio.gather(*[worker(task, semaphore) for task in tasks])
 
   from tqdm import tqdm
   tasks = tasks if isinstance(tasks, list) else list(tasks)
   with tqdm(total=len(tasks)) as pbar:
     update = functools.partial(pbar.update, 1)
-    return await asyncio.gather(*(worker(task, semaphore, update) for task in tasks))
+    return await asyncio.gather(*[worker(task, semaphore, update) for task in tasks])
 
 def as_async(workers=default_num_workers) -> Callable[[Callable[P, R]], Callable[P, Awaitable[R]]]:
   executor = ThreadPoolExecutor(max_workers=workers)
