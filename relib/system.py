@@ -8,18 +8,28 @@ from pathlib import Path
 from typing import Any, Awaitable, Callable, Iterable, ParamSpec, TypeVar
 from .utils import noop
 
+__all__ = [
+  "read_json",
+  "write_json",
+  "clear_console",
+  "console_link",
+  "roll_tasks",
+  "as_async",
+  "async_limit",
+]
+
 P = ParamSpec("P")
 R = TypeVar("R")
-default_num_workers = min(32, (os.cpu_count() or 1) + 4)
-_default_json: Any = {}
+default_workers = min(32, (os.cpu_count() or 1) + 4)
+default_sentinel = object()
 
-def read_json(path: Path, default=_default_json) -> Any:
-  if default is not _default_json and not path.exists():
+def read_json(path: Path, default=default_sentinel) -> Any:
+  if default is not default_sentinel and not path.exists():
     return default
   with path.open("r") as f:
     return json.load(f)
 
-def write_json(path: Path, obj: Any, indent: None | int = None) -> None:
+def write_json(path: Path, obj: object, indent: None | int = None) -> None:
   with path.open("w") as f:
     return json.dump(obj, f, indent=indent)
 
@@ -35,7 +45,7 @@ async def worker[T](task: Awaitable[T], semaphore: asyncio.Semaphore, update=noo
     update()
     return result
 
-async def roll_tasks[T](tasks: Iterable[Awaitable[T]], workers=default_num_workers, progress=False) -> list[T]:
+async def roll_tasks[T](tasks: Iterable[Awaitable[T]], workers=default_workers, progress=False) -> list[T]:
   semaphore = asyncio.Semaphore(workers)
   if not progress:
     return await asyncio.gather(*[worker(task, semaphore) for task in tasks])
@@ -46,7 +56,7 @@ async def roll_tasks[T](tasks: Iterable[Awaitable[T]], workers=default_num_worke
     update = functools.partial(pbar.update, 1)
     return await asyncio.gather(*[worker(task, semaphore, update) for task in tasks])
 
-def as_async(workers=default_num_workers) -> Callable[[Callable[P, R]], Callable[P, Awaitable[R]]]:
+def as_async(workers=default_workers) -> Callable[[Callable[P, R]], Callable[P, Awaitable[R]]]:
   executor = ThreadPoolExecutor(max_workers=workers)
 
   def on_fn(func: Callable[P, R]) -> Callable[P, Awaitable[R]]:
@@ -59,7 +69,7 @@ def as_async(workers=default_num_workers) -> Callable[[Callable[P, R]], Callable
     return wrapper
   return on_fn
 
-def async_limit(workers=default_num_workers) -> Callable[[Callable[P, Awaitable[R]]], Callable[P, Awaitable[R]]]:
+def async_limit(workers=default_workers) -> Callable[[Callable[P, Awaitable[R]]], Callable[P, Awaitable[R]]]:
   semaphore = asyncio.Semaphore(workers)
 
   def on_fn(func: Callable[P, Awaitable[R]]) -> Callable[P, Awaitable[R]]:

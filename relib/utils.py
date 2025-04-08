@@ -2,6 +2,44 @@ import re
 from itertools import chain
 from typing import Any, Callable, Iterable, overload
 
+__all__ = [
+  "noop",
+  "non_none",
+  "as_any",
+  "list_split",
+  "drop_none",
+  "distinct",
+  "dict_firsts",
+  "distinct_by",
+  "first",
+  "move_value",
+  "transpose_dict",
+  "make_combinations_by_dict",
+  "merge_dicts",
+  "intersect",
+  "ensure_tuple",
+  "key_of",
+  "omit",
+  "pick",
+  "dict_by",
+  "tuple_by",
+  "flatten",
+  "transpose",
+  "map_dict",
+  "deepen_dict",
+  "flatten_dict_inner",
+  "flatten_dict",
+  "group",
+  "reversed_enumerate",
+  "get_at",
+  "for_each",
+  "sized_partitions",
+  "num_partitions",
+  "df_from_array",
+  "StrFilter",
+  "str_filterer",
+]
+
 def noop() -> None:
   pass
 
@@ -26,6 +64,16 @@ def drop_none[T](iterable: Iterable[T | None]) -> list[T]:
 
 def distinct[T](items: Iterable[T]) -> list[T]:
   return list(dict.fromkeys(items))
+
+def dict_firsts[T, K](items: Iterable[tuple[K, T]]) -> dict[K, T]:
+  result: dict[K, T] = {}
+  for key, item in items:
+    if key not in result:
+      result[key] = item
+  return result
+
+def distinct_by[T](items: Iterable[tuple[object, T]]) -> list[T]:
+  return list(dict_firsts(items).values())
 
 def first[T](iterable: Iterable[T]) -> T | None:
   return next(iter(iterable), None)
