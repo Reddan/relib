@@ -4,6 +4,7 @@ from typing import Any, Callable, Iterable, overload
 
 __all__ = [
   "noop",
+  "clamp",
   "non_none",
   "as_any",
   "list_split",
@@ -11,6 +12,7 @@ __all__ = [
   "distinct",
   "dict_firsts",
   "distinct_by",
+  "sort_by",
   "first",
   "move_value",
   "transpose_dict",
@@ -43,6 +45,13 @@ __all__ = [
 def noop() -> None:
   pass
 
+@overload
+def clamp(value: int, low: int, high: int) -> int: ...
+@overload
+def clamp(value: float, low: float, high: float) -> float: ...
+def clamp(value: float, low: float, high: float) -> float:
+    return max(low, min(value, high))
+
 def non_none[T](obj: T | None) -> T:
   assert obj is not None
   return obj
@@ -50,38 +59,45 @@ def non_none[T](obj: T | None) -> T:
 def as_any(obj: Any) -> Any:
   return obj
 
-def list_split[T](l: list[T], sep: T) -> list[list[T]]:
-  l = [sep, *l, sep]
-  split_at = [i for i, x in enumerate(l) if x is sep]
+def list_split[T](iterable: Iterable[T], sep: T) -> list[list[T]]:
+  values = [sep, *iterable, sep]
+  split_at = [i for i, x in enumerate(values) if x is sep]
   ranges = list(zip(split_at[0:-1], split_at[1:]))
   return [
-    l[start + 1:end]
+    values[start + 1:end]
     for start, end in ranges
   ]
 
 def drop_none[T](iterable: Iterable[T | None]) -> list[T]:
   return [x for x in iterable if x is not None]
 
-def distinct[T](items: Iterable[T]) -> list[T]:
-  return list(dict.fromkeys(items))
+def distinct[T](iterable: Iterable[T]) -> list[T]:
+  return list(dict.fromkeys(iterable))
 
-def dict_firsts[T, K](items: Iterable[tuple[K, T]]) -> dict[K, T]:
+def dict_firsts[T, K](pairs: Iterable[tuple[K, T]]) -> dict[K, T]:
   result: dict[K, T] = {}
-  for key, item in items:
+  for key, item in pairs:
     if key not in result:
       result[key] = item
   return result
 
-def distinct_by[T](items: Iterable[tuple[object, T]]) -> list[T]:
-  return list(dict_firsts(items).values())
+def distinct_by[T](pairs: Iterable[tuple[object, T]]) -> list[T]:
+  return list(dict_firsts(pairs).values())
+
+def sort_by[T](pairs: Iterable[tuple[object, T]]) -> list[T]:
+  pair_list: list[Any] = list(pairs)
+  pair_list.sort(key=lambda p: p[0])
+  for i in range(len(pair_list)):
+    pair_list[i] = pair_list[i][1]
+  return pair_list
 
 def first[T](iterable: Iterable[T]) -> T | None:
   return next(iter(iterable), None)
 
 def move_value[T](iterable: Iterable[T], from_i: int, to_i: int) -> list[T]:
-  l = list(iterable)
-  l.insert(to_i, l.pop(from_i))
-  return l
+  values = list(iterable)
+  values.insert(to_i, values.pop(from_i))
+  return values
 
 def transpose_dict(des):
   if isinstance(des, list):
@@ -101,7 +117,7 @@ def transpose_dict(des):
   raise ValueError("transpose_dict only accepts dict or list")
 
 def make_combinations_by_dict(des, keys=None, pairs=[]):
-  keys = sorted(des.keys()) if keys == None else keys
+  keys = sorted(des.keys()) if keys is None else keys
   if len(keys) == 0:
     return [dict(pairs)]
   key = keys[0]
@@ -196,8 +212,8 @@ def group[T, K](pairs: Iterable[tuple[K, T]]) -> dict[K, list[T]]:
     values_by_key.setdefault(key, []).append(value)
   return values_by_key
 
-def reversed_enumerate[T](l: list[T] | tuple[T, ...]) -> Iterable[tuple[int, T]]:
-  return zip(reversed(range(len(l))), reversed(l))
+def reversed_enumerate[T](values: list[T] | tuple[T, ...]) -> Iterable[tuple[int, T]]:
+  return zip(reversed(range(len(values))), reversed(values))
 
 def get_at[T](d: dict, keys: Iterable[Any], default: T) -> T:
   try:

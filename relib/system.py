@@ -31,7 +31,8 @@ def read_json(path: Path, default=default_sentinel) -> Any:
 
 def write_json(path: Path, obj: object, indent: None | int = None) -> None:
   with path.open("w") as f:
-    return json.dump(obj, f, indent=indent)
+    separators = (",", ":") if indent is None else None
+    return json.dump(obj, f, indent=indent, separators=separators)
 
 def clear_console() -> None:
   os.system("cls" if os.name == "nt" else "clear")
