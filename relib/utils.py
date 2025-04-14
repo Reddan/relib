@@ -1,6 +1,6 @@
 import re
 from itertools import chain
-from typing import Any, Callable, Iterable, overload
+from typing import Any, Callable, Iterable, Literal, overload
 
 __all__ = [
   "noop",
@@ -84,12 +84,9 @@ def dict_firsts[T, K](pairs: Iterable[tuple[K, T]]) -> dict[K, T]:
 def distinct_by[T](pairs: Iterable[tuple[object, T]]) -> list[T]:
   return list(dict_firsts(pairs).values())
 
-def sort_by[T](pairs: Iterable[tuple[object, T]]) -> list[T]:
-  pair_list: list[Any] = list(pairs)
-  pair_list.sort(key=lambda p: p[0])
-  for i in range(len(pair_list)):
-    pair_list[i] = pair_list[i][1]
-  return pair_list
+def sort_by[T](pairs: Iterable[tuple[Any, T]]) -> list[T]:
+  pairs = sorted(pairs, key=lambda p: p[0])
+  return [v for _, v in pairs]
 
 def first[T](iterable: Iterable[T]) -> T | None:
   return next(iter(iterable), None)
@@ -161,10 +158,36 @@ def dict_by[T, K](keys: Iterable[K], values: Iterable[T]) -> dict[K, T]:
 def tuple_by[T, K](d: dict[K, T], keys: Iterable[K]) -> tuple[T, ...]:
   return tuple(d[key] for key in keys)
 
-def flatten[T](iterable: Iterable[Iterable[T]]) -> list[T]:
-  return list(chain.from_iterable(iterable))
+@overload
+def flatten[T](iterable: Iterable[T], depth: Literal[0]) -> list[T]: ...
+@overload
+def flatten[T](iterable: Iterable[Iterable[T]], depth: Literal[1] = 1) -> list[T]: ...
+@overload
+def flatten[T](iterable: Iterable[Iterable[Iterable[T]]], depth: Literal[2]) -> list[T]: ...
+@overload
+def flatten[T](iterable: Iterable[Iterable[Iterable[Iterable[T]]]], depth: Literal[3]) -> list[T]: ...
+@overload
+def flatten[T](iterable: Iterable[Iterable[Iterable[Iterable[Iterable[T]]]]], depth: Literal[4]) -> list[T]: ...
+@overload
+def flatten(iterable: Iterable, depth: int) -> list: ...
 
-def transpose(tuples, default_num_returns=0):
+def flatten(iterable: Iterable, depth: int = 1) -> list:
+  for _ in range(depth):
+    iterable = chain.from_iterable(iterable)
+  return list(iterable)
+
+@overload
+def transpose[T1, T2](tuples: Iterable[tuple[T1, T2]], default_num_returns: int = 0) -> tuple[list[T1], list[T2]]: ...
+@overload
+def transpose[T1, T2, T3](tuples: Iterable[tuple[T1, T2, T3]], default_num_returns: int = 0) -> tuple[list[T1], list[T2], list[T3]]: ...
+@overload
+def transpose[T1, T2, T3, T4](tuples: Iterable[tuple[T1, T2, T3, T4]], default_num_returns: int = 0) -> tuple[list[T1], list[T2], list[T3], list[T4]]: ...
+@overload
+def transpose[T1, T2, T3, T4, T5](tuples: Iterable[tuple[T1, T2, T3, T4, T5]], default_num_returns: int = 0) -> tuple[list[T1], list[T2], list[T3], list[T4], list[T5]]: ...
+@overload
+def transpose(tuples: Iterable[tuple], default_num_returns: int = 0) -> tuple[list, ...]: ...
+
+def transpose(tuples: Iterable[tuple], default_num_returns=0) -> tuple[list, ...]:
   output = tuple(zip(*tuples))
   if not output:
     return ([],) * default_num_returns
