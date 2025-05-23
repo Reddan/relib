@@ -1,38 +1,23 @@
 import asyncio
 import contextvars
-import functools
-import json
 import os
 from concurrent.futures import ThreadPoolExecutor
-from pathlib import Path
-from typing import Any, Awaitable, Callable, Iterable, ParamSpec, TypeVar
-from .utils import noop
+from functools import partial, wraps
+from time import time
+from typing import Awaitable, Callable, Iterable, ParamSpec, TypeVar
+from .processing_utils import noop
 
 __all__ = [
-  "read_json",
-  "write_json",
-  "clear_console",
-  "console_link",
+  "as_async", "async_limit",
+  "clear_console", "console_link",
   "roll_tasks",
-  "as_async",
-  "async_limit",
+  "measure_duration",
 ]
 
 P = ParamSpec("P")
 R = TypeVar("R")
+
 default_workers = min(32, (os.cpu_count() or 1) + 4)
-default_sentinel = object()
-
-def read_json(path: Path, default=default_sentinel) -> Any:
-  if default is not default_sentinel and not path.exists():
-    return default
-  with path.open("r") as f:
-    return json.load(f)
-
-def write_json(path: Path, obj: object, indent: None | int = None) -> None:
-  with path.open("w") as f:
-    separators = (",", ":") if indent is None else None
-    return json.dump(obj, f, indent=indent, separators=separators)
 
 def clear_console() -> None:
   os.system("cls" if os.name == "nt" else "clear")
@@ -54,18 +39,18 @@ async def roll_tasks[T](tasks: Iterable[Awaitable[T]], workers=default_workers, 
   from tqdm import tqdm
   tasks = tasks if isinstance(tasks, list) else list(tasks)
   with tqdm(total=len(tasks)) as pbar:
-    update = functools.partial(pbar.update, 1)
+    update = partial(pbar.update, 1)
     return await asyncio.gather(*[worker(task, semaphore, update) for task in tasks])
 
 def as_async(workers=default_workers) -> Callable[[Callable[P, R]], Callable[P, Awaitable[R]]]:
   executor = ThreadPoolExecutor(max_workers=workers)
 
   def on_fn(func: Callable[P, R]) -> Callable[P, Awaitable[R]]:
-    @functools.wraps(func)
+    @wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
       loop = asyncio.get_running_loop()
       ctx = contextvars.copy_context()
-      fn_call = functools.partial(ctx.run, func, *args, **kwargs)
+      fn_call = partial(ctx.run, func, *args, **kwargs)
       return await loop.run_in_executor(executor, fn_call)
     return wrapper
   return on_fn
@@ -74,9 +59,27 @@ def async_limit(workers=default_workers) -> Callable[[Callable[P, Awaitable[R]]]
   semaphore = asyncio.Semaphore(workers)
 
   def on_fn(func: Callable[P, Awaitable[R]]) -> Callable[P, Awaitable[R]]:
-    @functools.wraps(func)
+    @wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
       async with semaphore:
         return await func(*args, **kwargs)
     return wrapper
   return on_fn
+
+active_mds = []
+
+class measure_duration:
+  def __init__(self, name):
+    self.name = name
+    active_mds.append(self)
+
+  def __enter__(self):
+    self.start = time()
+
+  def __exit__(self, *_):
+    duration = round(time() - self.start, 4)
+    depth = len(active_mds) - 1
+    indent = ('──' * depth) + (' ' * (depth > 0))
+    text = '{}: {} seconds'.format(self.name, duration)
+    print(indent + text)
+    active_mds.remove(self)
