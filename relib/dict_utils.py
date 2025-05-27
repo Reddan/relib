@@ -53,8 +53,7 @@ def get_at[T](d: dict, keys: Iterable[Any], default: T) -> T:
 def dict_firsts[T, K](pairs: Iterable[tuple[K, T]]) -> dict[K, T]:
   result: dict[K, T] = {}
   for key, value in pairs:
-    if key not in result:
-      result[key] = value
+    result.setdefault(key, value)
   return result
 
 def group[T, K](pairs: Iterable[tuple[K, T]]) -> dict[K, list[T]]:

@@ -10,6 +10,7 @@ from .processing_utils import noop
 __all__ = [
   "as_async", "async_limit",
   "clear_console", "console_link",
+  "default_executor", "default_workers",
   "roll_tasks",
   "measure_duration",
 ]
@@ -18,6 +19,7 @@ P = ParamSpec("P")
 R = TypeVar("R")
 
 default_workers = min(32, (os.cpu_count() or 1) + 4)
+default_executor = ThreadPoolExecutor(max_workers=default_workers)
 
 def clear_console() -> None:
   os.system("cls" if os.name == "nt" else "clear")
@@ -42,8 +44,8 @@ async def roll_tasks[T](tasks: Iterable[Awaitable[T]], workers=default_workers, 
     update = partial(pbar.update, 1)
     return await asyncio.gather(*[worker(task, semaphore, update) for task in tasks])
 
-def as_async(workers=default_workers) -> Callable[[Callable[P, R]], Callable[P, Awaitable[R]]]:
-  executor = ThreadPoolExecutor(max_workers=workers)
+def as_async(workers: int | ThreadPoolExecutor = default_executor) -> Callable[[Callable[P, R]], Callable[P, Awaitable[R]]]:
+  executor = ThreadPoolExecutor(max_workers=workers) if isinstance(workers, int) else workers
 
   def on_fn(func: Callable[P, R]) -> Callable[P, Awaitable[R]]:
     @wraps(func)
@@ -79,7 +81,7 @@ class measure_duration:
   def __exit__(self, *_):
     duration = round(time() - self.start, 4)
     depth = len(active_mds) - 1
-    indent = ('──' * depth) + (' ' * (depth > 0))
-    text = '{}: {} seconds'.format(self.name, duration)
+    indent = "──" * depth + " " * (depth > 0)
+    text = f"{self.name}: {duration} seconds"
     print(indent + text)
     active_mds.remove(self)

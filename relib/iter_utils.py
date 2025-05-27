@@ -5,7 +5,7 @@ from .dict_utils import dict_firsts
 __all__ = [
   "distinct_by", "distinct", "drop_none",
   "first", "flatten",
-  "intersect",
+  "interleave", "intersect",
   "list_split",
   "move_value",
   "num_partitions",
@@ -36,10 +36,13 @@ def move_value[T](iterable: Iterable[T], from_i: int, to_i: int) -> list[T]:
   return values
 
 def reversed_enumerate[T](values: list[T] | tuple[T, ...]) -> Iterable[tuple[int, T]]:
-  return zip(reversed(range(len(values))), reversed(values))
+  return zip(range(len(values))[::1], reversed(values))
 
 def intersect[T](*iterables: Iterable[T]) -> list[T]:
   return list(set.intersection(*map(set, iterables)))
+
+def interleave[T](*iterables: Iterable[T]) -> list[T]:
+  return flatten(zip(*iterables))
 
 def list_split[T](iterable: Iterable[T], sep: T) -> list[list[T]]:
   values = [sep, *iterable, sep]
