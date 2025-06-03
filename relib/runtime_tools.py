@@ -4,7 +4,7 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial, wraps
 from time import time
-from typing import Awaitable, Callable, Iterable, ParamSpec, TypeVar
+from typing import Callable, Coroutine, Iterable, ParamSpec, TypeVar
 from .processing_utils import noop
 
 __all__ = [
@@ -17,6 +17,7 @@ __all__ = [
 
 P = ParamSpec("P")
 R = TypeVar("R")
+Coro = Coroutine[object, object, R]
 
 default_workers = min(32, (os.cpu_count() or 1) + 4)
 default_executor = ThreadPoolExecutor(max_workers=default_workers)
@@ -27,13 +28,13 @@ def clear_console() -> None:
 def console_link(text: str, url: str) -> str:
   return f"\033]8;;{url}\033\\{text}\033]8;;\033\\"
 
-async def worker[T](task: Awaitable[T], semaphore: asyncio.Semaphore, update=noop) -> T:
+async def worker[T](task: Coro[T], semaphore: asyncio.Semaphore, update=noop) -> T:
   async with semaphore:
     result = await task
     update()
     return result
 
-async def roll_tasks[T](tasks: Iterable[Awaitable[T]], workers=default_workers, progress=False) -> list[T]:
+async def roll_tasks[T](tasks: Iterable[Coro[T]], workers=default_workers, progress=False) -> list[T]:
   semaphore = asyncio.Semaphore(workers)
   if not progress:
     return await asyncio.gather(*[worker(task, semaphore) for task in tasks])
@@ -44,10 +45,10 @@ async def roll_tasks[T](tasks: Iterable[Awaitable[T]], workers=default_workers, 
     update = partial(pbar.update, 1)
     return await asyncio.gather(*[worker(task, semaphore, update) for task in tasks])
 
-def as_async(workers: int | ThreadPoolExecutor = default_executor) -> Callable[[Callable[P, R]], Callable[P, Awaitable[R]]]:
+def as_async(workers: int | ThreadPoolExecutor = default_executor) -> Callable[[Callable[P, R]], Callable[P, Coro[R]]]:
   executor = ThreadPoolExecutor(max_workers=workers) if isinstance(workers, int) else workers
 
-  def on_fn(func: Callable[P, R]) -> Callable[P, Awaitable[R]]:
+  def on_fn(func: Callable[P, R]) -> Callable[P, Coro[R]]:
     @wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
       loop = asyncio.get_running_loop()
@@ -57,10 +58,10 @@ def as_async(workers: int | ThreadPoolExecutor = default_executor) -> Callable[[
     return wrapper
   return on_fn
 
-def async_limit(workers=default_workers) -> Callable[[Callable[P, Awaitable[R]]], Callable[P, Awaitable[R]]]:
+def async_limit(workers=default_workers) -> Callable[[Callable[P, Coro[R]]], Callable[P, Coro[R]]]:
   semaphore = asyncio.Semaphore(workers)
 
-  def on_fn(func: Callable[P, Awaitable[R]]) -> Callable[P, Awaitable[R]]:
+  def on_fn(func: Callable[P, Coro[R]]) -> Callable[P, Coro[R]]:
     @wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
       async with semaphore:

@@ -1,16 +1,17 @@
-from itertools import chain
-from typing import Any, Iterable, Literal, overload
+from contextlib import contextmanager
+from itertools import chain, islice
+from typing import Any, Iterable, Literal, Self, overload
 from .dict_utils import dict_firsts
 
 __all__ = [
+  "chunked",
   "distinct_by", "distinct", "drop_none",
   "first", "flatten",
   "interleave", "intersect",
   "list_split",
   "move_value",
-  "num_partitions",
   "reversed_enumerate",
-  "sized_partitions", "sort_by",
+  "seekable", "sort_by",
   "transpose",
 ]
 
@@ -36,7 +37,7 @@ def move_value[T](iterable: Iterable[T], from_i: int, to_i: int) -> list[T]:
   return values
 
 def reversed_enumerate[T](values: list[T] | tuple[T, ...]) -> Iterable[tuple[int, T]]:
-  return zip(range(len(values))[::1], reversed(values))
+  return zip(range(len(values))[::-1], reversed(values))
 
 def intersect[T](*iterables: Iterable[T]) -> list[T]:
   return list(set.intersection(*map(set, iterables)))
@@ -50,18 +51,68 @@ def list_split[T](iterable: Iterable[T], sep: T) -> list[list[T]]:
   ranges = list(zip(split_at[0:-1], split_at[1:]))
   return [values[start + 1:end] for start, end in ranges]
 
-def sized_partitions[T](values: Iterable[T], part_size: int) -> list[list[T]]:
-  # "chunk"
-  if not isinstance(values, list):
-    values = list(values)
-  num_parts = (len(values) / part_size).__ceil__()
-  return [values[i * part_size:(i + 1) * part_size] for i in range(num_parts)]
+class seekable[T]:
+  def __init__(self, iterable: Iterable[T]):
+    self.index = 0
+    self.source = iter(iterable)
+    self.sink: list[T] = []
 
-def num_partitions[T](values: Iterable[T], num_parts: int) -> list[list[T]]:
-  if not isinstance(values, list):
-    values = list(values)
-  part_size = (len(values) / num_parts).__ceil__()
-  return [values[i * part_size:(i + 1) * part_size] for i in range(num_parts)]
+  def __iter__(self):
+    return self
+
+  def __next__(self) -> T:
+    if len(self.sink) > self.index:
+      item = self.sink[self.index]
+    else:
+      item = next(self.source)
+      self.sink.append(item)
+    self.index += 1
+    return item
+
+  def __bool__(self):
+    return bool(self.lookahead(1))
+
+  def clear(self):
+    self.sink[:self.index] = []
+    self.index = 0
+
+  def seek(self, index: int) -> Self:
+    remainder = index - len(self.sink)
+    if remainder > 0:
+      next(islice(self, remainder, remainder), None)
+    self.index = max(0, min(index, len(self.sink)))
+    return self
+
+  def step(self, count: int) -> Self:
+    return self.seek(self.index + count)
+
+  @contextmanager
+  def freeze(self):
+    def commit(offset: int = 0):
+      nonlocal initial_index
+      initial_index = self.index + offset
+    initial_index = self.index
+    try:
+      yield commit
+    finally:
+      self.seek(initial_index)
+
+  def lookahead(self, count: int) -> list[T]:
+    with self.freeze():
+      return list(islice(self, count))
+
+@overload
+def chunked[T](values: Iterable[T], *, num_chunks: int, chunk_size=None) -> list[list[T]]: ...
+@overload
+def chunked[T](values: Iterable[T], *, num_chunks=None, chunk_size: int) -> list[list[T]]: ...
+def chunked(values, *, num_chunks=None, chunk_size=None):
+  values = values if isinstance(values, list) else list(values)
+  if isinstance(num_chunks, int):
+    chunk_size = (len(values) / num_chunks).__ceil__()
+  elif isinstance(chunk_size, int):
+    num_chunks = (len(values) / chunk_size).__ceil__()
+  assert isinstance(num_chunks, int) and isinstance(chunk_size, int)
+  return [values[i * chunk_size:(i + 1) * chunk_size] for i in range(num_chunks)]
 
 @overload
 def flatten[T](iterable: Iterable[T], depth: Literal[0]) -> list[T]: ...
