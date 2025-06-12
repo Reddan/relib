@@ -10,6 +10,7 @@ __all__ = [
   "interleave", "intersect",
   "list_split",
   "move_value",
+  "partition",
   "reversed_enumerate",
   "seekable", "sort_by",
   "transpose",
@@ -50,6 +51,15 @@ def list_split[T](iterable: Iterable[T], sep: T) -> list[list[T]]:
   split_at = [i for i, x in enumerate(values) if x is sep]
   ranges = list(zip(split_at[0:-1], split_at[1:]))
   return [values[start + 1:end] for start, end in ranges]
+
+def partition[T](iterable: Iterable[tuple[bool, T]]) -> tuple[list[T], list[T]]:
+  true_values, false_values = [], []
+  for predicate, value in iterable:
+    if predicate:
+      true_values.append(value)
+    else:
+      false_values.append(value)
+  return true_values, false_values
 
 class seekable[T]:
   def __init__(self, iterable: Iterable[T]):

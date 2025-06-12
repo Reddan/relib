@@ -1,6 +1,7 @@
 import asyncio
 import contextvars
 import os
+import sys
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial, wraps
 from time import time
@@ -11,7 +12,7 @@ __all__ = [
   "as_async", "async_limit",
   "clear_console", "console_link",
   "default_executor", "default_workers",
-  "roll_tasks",
+  "raise_if_interrupt", "roll_tasks",
   "measure_duration",
 ]
 
@@ -21,6 +22,10 @@ Coro = Coroutine[object, object, R]
 
 default_workers = min(32, (os.cpu_count() or 1) + 4)
 default_executor = ThreadPoolExecutor(max_workers=default_workers)
+
+def raise_if_interrupt():
+  if sys.exc_info()[0] in (KeyboardInterrupt, SystemExit):
+     raise
 
 def clear_console() -> None:
   os.system("cls" if os.name == "nt" else "clear")
