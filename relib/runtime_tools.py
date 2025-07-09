@@ -25,7 +25,7 @@ default_executor = ThreadPoolExecutor(max_workers=default_workers)
 
 def raise_if_interrupt():
   if sys.exc_info()[0] in (KeyboardInterrupt, SystemExit):
-     raise
+    raise
 
 def clear_console() -> None:
   os.system("cls" if os.name == "nt" else "clear")
