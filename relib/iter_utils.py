@@ -1,9 +1,11 @@
 from contextlib import contextmanager
 from itertools import chain, islice
-from typing import Any, Iterable, Literal, Self, overload
+from typing import Any, Iterable, Literal, Self, Sequence, overload
 from .dict_utils import dict_firsts
 
 __all__ = [
+  "as_list",
+  "at",
   "chunked",
   "distinct_by", "distinct", "drop_none",
   "first", "flatten",
@@ -15,6 +17,15 @@ __all__ = [
   "seekable", "sort_by",
   "transpose",
 ]
+
+def as_list[T](iterable: Iterable[T]) -> list[T]:
+  return iterable if isinstance(iterable, list) else list(iterable)
+
+def at[T, U](values: Sequence[T], index: int, default: U = None) -> T | U:
+  try:
+    return values[index]
+  except IndexError:
+    return default
 
 def first[T](iterable: Iterable[T]) -> T | None:
   return next(iter(iterable), None)
@@ -28,8 +39,8 @@ def distinct[T](iterable: Iterable[T]) -> list[T]:
 def distinct_by[T](pairs: Iterable[tuple[object, T]]) -> list[T]:
   return list(dict_firsts(pairs).values())
 
-def sort_by[T](pairs: Iterable[tuple[Any, T]]) -> list[T]:
-  pairs = sorted(pairs, key=lambda p: p[0])
+def sort_by[T](pairs: Iterable[tuple[Any, T]], reverse=False) -> list[T]:
+  pairs = sorted(pairs, key=lambda p: p[0], reverse=reverse)
   return [v for _, v in pairs]
 
 def move_value[T](iterable: Iterable[T], from_i: int, to_i: int) -> list[T]:
@@ -37,7 +48,7 @@ def move_value[T](iterable: Iterable[T], from_i: int, to_i: int) -> list[T]:
   values.insert(to_i, values.pop(from_i))
   return values
 
-def reversed_enumerate[T](values: list[T] | tuple[T, ...]) -> Iterable[tuple[int, T]]:
+def reversed_enumerate[T](values: Sequence[T] | tuple[T, ...]) -> Iterable[tuple[int, T]]:
   return zip(range(len(values))[::-1], reversed(values))
 
 def intersect[T](*iterables: Iterable[T]) -> list[T]:
@@ -116,7 +127,7 @@ def chunked[T](values: Iterable[T], *, num_chunks: int, chunk_size=None) -> list
 @overload
 def chunked[T](values: Iterable[T], *, num_chunks=None, chunk_size: int) -> list[list[T]]: ...
 def chunked(values, *, num_chunks=None, chunk_size=None):
-  values = values if isinstance(values, list) else list(values)
+  values = as_list(values)
   if isinstance(num_chunks, int):
     chunk_size = (len(values) / num_chunks).__ceil__()
   elif isinstance(chunk_size, int):

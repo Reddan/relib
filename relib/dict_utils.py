@@ -2,8 +2,8 @@ from typing import Any, Callable, Iterable, overload
 from .type_utils import as_any
 
 __all__ = [
-  "deepen_dict", "dict_by", "dict_firsts",
-  "flatten_dict_inner", "flatten_dict",
+  "deep_dict_pairs", "deepen_dict", "dict_by", "dict_firsts",
+  "flatten_dict",
   "get_at", "group",
   "key_of",
   "map_dict", "merge_dicts",
@@ -62,15 +62,15 @@ def group[T, K](pairs: Iterable[tuple[K, T]]) -> dict[K, list[T]]:
     values_by_key.setdefault(key, []).append(value)
   return values_by_key
 
-def flatten_dict_inner(d, prefix=()):
+def deep_dict_pairs(d, prefix=()):
   for key, value in d.items():
     if not isinstance(value, dict) or value == {}:
       yield prefix + (key,), value
     else:
-      yield from flatten_dict_inner(value, prefix + (key,))
+      yield from deep_dict_pairs(value, prefix + (key,))
 
 def flatten_dict(deep_dict: dict, prefix=()) -> dict:
-  return dict(flatten_dict_inner(deep_dict, prefix))
+  return dict(deep_dict_pairs(deep_dict, prefix))
 
 @overload
 def deepen_dict[K1, U](d: dict[tuple[K1], U]) -> dict[K1, U]: ...

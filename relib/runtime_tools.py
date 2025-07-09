@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import partial, wraps
 from time import time
 from typing import Callable, Coroutine, Iterable, ParamSpec, TypeVar
+from .iter_utils import as_list
 from .processing_utils import noop
 
 __all__ = [
@@ -45,7 +46,7 @@ async def roll_tasks[T](tasks: Iterable[Coro[T]], workers=default_workers, progr
     return await asyncio.gather(*[worker(task, semaphore) for task in tasks])
 
   from tqdm import tqdm
-  tasks = tasks if isinstance(tasks, list) else list(tasks)
+  tasks = as_list(tasks)
   with tqdm(total=len(tasks)) as pbar:
     update = partial(pbar.update, 1)
     return await asyncio.gather(*[worker(task, semaphore, update) for task in tasks])
