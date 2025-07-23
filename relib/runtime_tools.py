@@ -8,6 +8,7 @@ from time import time
 from typing import Callable, Coroutine, Iterable, ParamSpec, TypeVar
 from .iter_utils import as_list
 from .processing_utils import noop
+from .types import T
 
 __all__ = [
   "as_async", "async_limit",
@@ -34,13 +35,13 @@ def clear_console() -> None:
 def console_link(text: str, url: str) -> str:
   return f"\033]8;;{url}\033\\{text}\033]8;;\033\\"
 
-async def worker[T](task: Coro[T], semaphore: asyncio.Semaphore, update=noop) -> T:
+async def worker(task: Coro[T], semaphore: asyncio.Semaphore, update=noop) -> T:
   async with semaphore:
     result = await task
     update()
     return result
 
-async def roll_tasks[T](tasks: Iterable[Coro[T]], workers=default_workers, progress=False) -> list[T]:
+async def roll_tasks(tasks: Iterable[Coro[T]], workers=default_workers, progress=False) -> list[T]:
   semaphore = asyncio.Semaphore(workers)
   if not progress:
     return await asyncio.gather(*[worker(task, semaphore) for task in tasks])

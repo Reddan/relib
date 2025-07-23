@@ -1,4 +1,5 @@
 from typing import Any
+from .types import T
 
 __all__ = [
   "as_any",
@@ -9,9 +10,9 @@ __all__ = [
 def as_any(obj: Any) -> Any:
   return obj
 
-def non_none[T](obj: T | None) -> T:
+def non_none(obj: T | None) -> T:
   assert obj is not None
   return obj
 
-def ensure_tuple[T](value: T | tuple[T, ...]) -> tuple[T, ...]:
+def ensure_tuple(value: T | tuple[T, ...]) -> tuple[T, ...]:
   return value if isinstance(value, tuple) else (value,)

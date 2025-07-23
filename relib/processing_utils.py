@@ -1,5 +1,6 @@
 import re
 from typing import Any, Callable, Iterable, overload
+from .types import T
 
 __all__ = [
   "clamp",
@@ -12,7 +13,7 @@ __all__ = [
 def noop() -> None:
   pass
 
-def for_each[T](func: Callable[[T], Any], iterable: Iterable[T]) -> None:
+def for_each(func: Callable[[T], Any], iterable: Iterable[T]) -> None:
   for item in iterable:
     func(item)
 

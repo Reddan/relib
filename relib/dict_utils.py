@@ -1,5 +1,6 @@
 from typing import Any, Callable, Iterable, overload
 from .type_utils import as_any
+from .types import K1, K2, K3, K4, K5, K6, K, T, U
 
 __all__ = [
   "deep_dict_pairs", "deepen_dict", "dict_by", "dict_firsts",
@@ -12,7 +13,7 @@ __all__ = [
   "tuple_by",
 ]
 
-def merge_dicts[T, K](*dicts: dict[K, T]) -> dict[K, T]:
+def merge_dicts(*dicts: dict[K, T]) -> dict[K, T]:
   if len(dicts) == 1:
     return dicts[0]
   result = {}
@@ -20,29 +21,29 @@ def merge_dicts[T, K](*dicts: dict[K, T]) -> dict[K, T]:
     result |= d
   return result
 
-def omit[T, K](d: dict[K, T], keys: Iterable[K]) -> dict[K, T]:
+def omit(d: dict[K, T], keys: Iterable[K]) -> dict[K, T]:
   if keys:
     d = dict(d)
     for key in keys:
       del d[key]
   return d
 
-def pick[T, K](d: dict[K, T], keys: Iterable[K]) -> dict[K, T]:
+def pick(d: dict[K, T], keys: Iterable[K]) -> dict[K, T]:
   return {key: d[key] for key in keys}
 
-def dict_by[T, K](keys: Iterable[K], values: Iterable[T]) -> dict[K, T]:
+def dict_by(keys: Iterable[K], values: Iterable[T]) -> dict[K, T]:
   return dict(zip(keys, values))
 
-def tuple_by[T, K](d: dict[K, T], keys: Iterable[K]) -> tuple[T, ...]:
+def tuple_by(d: dict[K, T], keys: Iterable[K]) -> tuple[T, ...]:
   return tuple(d[key] for key in keys)
 
-def map_dict[T, U, K](fn: Callable[[T], U], d: dict[K, T]) -> dict[K, U]:
+def map_dict(fn: Callable[[T], U], d: dict[K, T]) -> dict[K, U]:
   return {key: fn(value) for key, value in d.items()}
 
-def key_of[T, U](dicts: Iterable[dict[T, U]], key: T) -> list[U]:
+def key_of(dicts: Iterable[dict[T, U]], key: T) -> list[U]:
   return [d[key] for d in dicts]
 
-def get_at[T](d: dict, keys: Iterable[Any], default: T) -> T:
+def get_at(d: dict, keys: Iterable[Any], default: T) -> T:
   try:
     for key in keys:
       d = d[key]
@@ -50,13 +51,13 @@ def get_at[T](d: dict, keys: Iterable[Any], default: T) -> T:
     return default
   return as_any(d)
 
-def dict_firsts[T, K](pairs: Iterable[tuple[K, T]]) -> dict[K, T]:
+def dict_firsts(pairs: Iterable[tuple[K, T]]) -> dict[K, T]:
   result: dict[K, T] = {}
   for key, value in pairs:
     result.setdefault(key, value)
   return result
 
-def group[T, K](pairs: Iterable[tuple[K, T]]) -> dict[K, list[T]]:
+def group(pairs: Iterable[tuple[K, T]]) -> dict[K, list[T]]:
   values_by_key = {}
   for key, value in pairs:
     values_by_key.setdefault(key, []).append(value)
@@ -73,17 +74,17 @@ def flatten_dict(deep_dict: dict, prefix=()) -> dict:
   return dict(deep_dict_pairs(deep_dict, prefix))
 
 @overload
-def deepen_dict[K1, U](d: dict[tuple[K1], U]) -> dict[K1, U]: ...
+def deepen_dict(d: dict[tuple[K1], U]) -> dict[K1, U]: ...
 @overload
-def deepen_dict[K1, K2, U](d: dict[tuple[K1, K2], U]) -> dict[K1, dict[K2, U]]: ...
+def deepen_dict(d: dict[tuple[K1, K2], U]) -> dict[K1, dict[K2, U]]: ...
 @overload
-def deepen_dict[K1, K2, K3, U](d: dict[tuple[K1, K2, K3], U]) -> dict[K1, dict[K2, dict[K3, U]]]: ...
+def deepen_dict(d: dict[tuple[K1, K2, K3], U]) -> dict[K1, dict[K2, dict[K3, U]]]: ...
 @overload
-def deepen_dict[K1, K2, K3, K4, U](d: dict[tuple[K1, K2, K3, K4], U]) -> dict[K1, dict[K2, dict[K3, dict[K4, U]]]]: ...
+def deepen_dict(d: dict[tuple[K1, K2, K3, K4], U]) -> dict[K1, dict[K2, dict[K3, dict[K4, U]]]]: ...
 @overload
-def deepen_dict[K1, K2, K3, K4, K5, U](d: dict[tuple[K1, K2, K3, K4, K5], U]) -> dict[K1, dict[K2, dict[K3, dict[K4, dict[K5, U]]]]]: ...
+def deepen_dict(d: dict[tuple[K1, K2, K3, K4, K5], U]) -> dict[K1, dict[K2, dict[K3, dict[K4, dict[K5, U]]]]]: ...
 @overload
-def deepen_dict[K1, K2, K3, K4, K5, K6, U](d: dict[tuple[K1, K2, K3, K4, K5, K6], U]) -> dict[K1, dict[K2, dict[K3, dict[K4, dict[K5, dict[K6, U]]]]]]: ...
+def deepen_dict(d: dict[tuple[K1, K2, K3, K4, K5, K6], U]) -> dict[K1, dict[K2, dict[K3, dict[K4, dict[K5, dict[K6, U]]]]]]: ...
 def deepen_dict(d: dict[tuple[Any, ...], Any]) -> dict:
   output = {}
   if () in d:
