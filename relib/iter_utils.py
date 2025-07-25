@@ -6,8 +6,7 @@ from .dict_utils import dict_firsts
 from .types import T1, T2, T3, T4, T5, T, U
 
 __all__ = [
-  "as_list",
-  "at",
+  "as_list", "at",
   "chunked",
   "distinct_by", "distinct", "drop_none",
   "first", "flatten",

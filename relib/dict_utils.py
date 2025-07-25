@@ -1,6 +1,8 @@
 from typing import Any, Callable, Iterable, overload
 from .type_utils import as_any
-from .types import K1, K2, K3, K4, K5, K6, K, T, U
+from .types import K1, K2, K3, K4, K5, K6, T1, T2, K, T, U
+
+sentinel = object()
 
 __all__ = [
   "deep_dict_pairs", "deepen_dict", "dict_by", "dict_firsts",
@@ -10,6 +12,7 @@ __all__ = [
   "map_dict", "merge_dicts",
   "omit",
   "pick",
+  "remap",
   "tuple_by",
 ]
 
@@ -37,8 +40,26 @@ def dict_by(keys: Iterable[K], values: Iterable[T]) -> dict[K, T]:
 def tuple_by(d: dict[K, T], keys: Iterable[K]) -> tuple[T, ...]:
   return tuple(d[key] for key in keys)
 
-def map_dict(fn: Callable[[T], U], d: dict[K, T]) -> dict[K, U]:
+def map_dict(fn: Callable[[T], T], d: dict[K, T]) -> dict[K, T]:
   return {key: fn(value) for key, value in d.items()}
+
+@overload
+def remap(d: dict[K1, T1]) -> dict[K1, T1]: ...
+@overload
+def remap(d: dict[K1, T1], *, keys: dict[K1, K2] = {}) -> dict[K2, T1]: ...
+@overload
+def remap(d: dict[K1, T1], *, values: dict[T1, T2] = {}) -> dict[K1, T2]: ...
+@overload
+def remap(d: dict[K1, T1], *, keys: dict[K1, K2], values: dict[T1, T2]) -> dict[K2, T2]: ...
+def remap(d: dict, *, keys=sentinel, values=sentinel) -> dict:
+  match (keys, values):
+    case (dict(), dict()):
+      return {keys[key]: values[value] for key, value in d.items()}
+    case (dict(), _):
+      return {keys[key]: value for key, value in d.items()}
+    case (_, dict()):
+      return {key: values[value] for key, value in d.items()}
+  return d
 
 def key_of(dicts: Iterable[dict[T, U]], key: T) -> list[U]:
   return [d[key] for d in dicts]
