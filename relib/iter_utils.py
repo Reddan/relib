@@ -95,14 +95,14 @@ class seekable(Generic[T]):
     return item
 
   def __bool__(self):
-    return bool(self.lookahead(1))
+    return bool(self[:1])
 
   def clear(self):
     self.sink[:self.index] = []
     self.index = 0
 
   def seek(self, index: int) -> seekable[T]:
-    remainder = index - len(self.sink)
+    remainder = index - self.index
     if remainder > 0:
       next(islice(self, remainder, remainder), None)
     self.index = max(0, min(index, len(self.sink)))
@@ -122,11 +122,20 @@ class seekable(Generic[T]):
     finally:
       self.seek(initial_index)
 
-  def lookahead(self, count: int) -> list[T]:
+  @overload
+  def __getitem__(self, key: int) -> T: ...
+  @overload
+  def __getitem__(self, key: slice[int | None]) -> list[T]: ...
+  def __getitem__(self, key: int | slice[int | None]):
     with self.freeze():
-      return list(islice(self, count))
+      if isinstance(key, int):
+        return self[key:key + 1][0]
+      parts = (key.start, key.stop, key.step)
+      if not all(x is None or x >= 0 for x in parts):
+        raise ValueError(f"Indices for seekable() must be positive int")
+      return list(islice(self, *parts))
 
-  def forgetful(self) -> Iterable[T]:
+  def consume(self) -> Iterable[T]:
     for value in self:
       self.clear()
       yield value
