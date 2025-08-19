@@ -14,7 +14,7 @@ __all__ = [
   "list_split",
   "move_value",
   "partition",
-  "reversed_enumerate",
+  "range_of", "reversed_enumerate",
   "seekable", "sort_by",
   "transpose",
 ]
@@ -73,6 +73,9 @@ def partition(iterable: Iterable[tuple[bool, T]]) -> tuple[list[T], list[T]]:
       false_values.append(value)
   return true_values, false_values
 
+def range_of(values: Sequence) -> range:
+  return range(len(values))
+
 class seekable(Generic[T]):
   def __init__(self, iterable: Iterable[T]):
     self.index = 0
@@ -122,6 +125,11 @@ class seekable(Generic[T]):
   def lookahead(self, count: int) -> list[T]:
     with self.freeze():
       return list(islice(self, count))
+
+  def forgetful(self) -> Iterable[T]:
+    for value in self:
+      self.clear()
+      yield value
 
 @overload
 def chunked(values: Iterable[T], *, num_chunks: int, chunk_size=None) -> list[list[T]]: ...

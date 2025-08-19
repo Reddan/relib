@@ -24,11 +24,14 @@ def merge_dicts(*dicts: dict[K, T]) -> dict[K, T]:
     result |= d
   return result
 
-def omit(d: dict[K, T], keys: Iterable[K]) -> dict[K, T]:
+def omit(d: dict[K, T], keys: Iterable[K], optional=False) -> dict[K, T]:
   if keys:
     d = dict(d)
     for key in keys:
-      del d[key]
+      try:
+        del d[key]
+      except KeyError if optional else ():
+        pass
   return d
 
 def pick(d: dict[K, T], keys: Iterable[K]) -> dict[K, T]:
