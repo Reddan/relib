@@ -2,6 +2,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from itertools import chain, islice
 from typing import Any, Generic, Iterable, Literal, Sequence, overload
+from .class_utils import slicer
 from .dict_utils import dict_firsts
 from .types import T1, T2, T3, T4, T5, T, U
 
@@ -81,6 +82,7 @@ class seekable(Generic[T]):
     self.index = 0
     self.source = iter(iterable)
     self.sink: list[T] = []
+    self.abs = slicer(self.abs_getitem)
 
   def __iter__(self):
     return self
@@ -102,10 +104,10 @@ class seekable(Generic[T]):
     self.index = 0
 
   def seek(self, index: int) -> seekable[T]:
-    remainder = index - self.index
-    if remainder > 0:
+    index = max(0, index)
+    self.index = min(index, len(self.sink))
+    if (remainder := index - self.index) > 0:
       next(islice(self, remainder, remainder), None)
-    self.index = max(0, min(index, len(self.sink)))
     return self
 
   def step(self, count: int) -> seekable[T]:
@@ -130,10 +132,21 @@ class seekable(Generic[T]):
     with self.freeze():
       if isinstance(key, int):
         return self[key:key + 1][0]
-      parts = (key.start, key.stop, key.step)
-      if not all(x is None or x >= 0 for x in parts):
-        raise ValueError(f"Indices for seekable() must be positive int")
-      return list(islice(self, *parts))
+      start, stop, step = key.start, key.stop, key.step
+      delta = min(self.index, -min(0, start or 0))
+      start = None if start is None else max(0, start + delta)
+      stop = None if stop is None else max(0, stop + delta)
+      self.step(-delta)
+      return list(islice(self, start, stop, step))
+
+  @overload
+  def abs_getitem(self, key: int) -> T: ...
+  @overload
+  def abs_getitem(self, key: slice[int | None]) -> list[T]: ...
+  def abs_getitem(self, key: int | slice[int | None]):
+    with self.freeze():
+      self.seek(0)
+      return self[key]
 
   def consume(self) -> Iterable[T]:
     for value in self:
