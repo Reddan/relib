@@ -1,6 +1,6 @@
 from __future__ import annotations
 from contextlib import contextmanager
-from itertools import chain, islice
+from itertools import chain, islice, tee
 from typing import Any, Generic, Iterable, Literal, Sequence, overload
 from .class_utils import slicer
 from .dict_utils import dict_firsts
@@ -18,6 +18,7 @@ __all__ = [
   "range_of", "reversed_enumerate",
   "seekable", "sort_by",
   "transpose",
+  "unzip_iterable",
 ]
 
 def as_list(iterable: Iterable[T]) -> list[T]:
@@ -198,3 +199,15 @@ def transpose(tuples: Iterable[tuple], default_num_returns=0) -> tuple[list, ...
   if not output:
     return ([],) * default_num_returns
   return tuple(map(list, output))
+
+@overload
+def unzip_iterable(iterable: Iterable[tuple[T1, T2]], n: Literal[2]) -> tuple[Iterable[T1], Iterable[T2]]: ...
+@overload
+def unzip_iterable(iterable: Iterable[tuple[T1, T2, T3]], n: Literal[3]) -> tuple[Iterable[T1], Iterable[T2], Iterable[T3]]: ...
+@overload
+def unzip_iterable(iterable: Iterable[tuple[T1, T2, T3, T4]], n: Literal[4]) -> tuple[Iterable[T1], Iterable[T2], Iterable[T3], Iterable[T4]]: ...
+@overload
+def unzip_iterable(iterable: Iterable[tuple[T1, T2, T3, T4, T5]], n: Literal[5]) -> tuple[Iterable[T1], Iterable[T2], Iterable[T3], Iterable[T4], Iterable[T5]]: ...
+def unzip_iterable(iterable: Iterable[tuple], n: int) -> tuple:
+    iters = tee(iterable, n)
+    return tuple(map(lambda i, iter: (x[i] for x in iter), range(n), iters))
