@@ -100,9 +100,10 @@ class seekable(Generic[T]):
   def __bool__(self):
     return bool(self[:1])
 
-  def clear(self):
+  def clear(self) -> seekable[T]:
     self.sink[:self.index] = []
     self.index = 0
+    return self
 
   def seek(self, index: int) -> seekable[T]:
     index = max(0, index)
@@ -208,6 +209,6 @@ def unzip_iterable(iterable: Iterable[tuple[T1, T2, T3]], n: Literal[3]) -> tupl
 def unzip_iterable(iterable: Iterable[tuple[T1, T2, T3, T4]], n: Literal[4]) -> tuple[Iterable[T1], Iterable[T2], Iterable[T3], Iterable[T4]]: ...
 @overload
 def unzip_iterable(iterable: Iterable[tuple[T1, T2, T3, T4, T5]], n: Literal[5]) -> tuple[Iterable[T1], Iterable[T2], Iterable[T3], Iterable[T4], Iterable[T5]]: ...
-def unzip_iterable(iterable: Iterable[tuple], n: int) -> tuple:
+def unzip_iterable(iterable: Iterable[tuple], n: int) -> tuple[Iterable, ...]:
     iters = tee(iterable, n)
     return tuple(map(lambda i, iter: (x[i] for x in iter), range(n), iters))
