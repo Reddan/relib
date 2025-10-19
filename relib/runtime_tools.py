@@ -26,7 +26,7 @@ default_workers = min(32, (os.cpu_count() or 1) + 4)
 default_executor = ThreadPoolExecutor(max_workers=default_workers)
 
 def raise_if_interrupt():
-  if sys.exc_info()[0] in (KeyboardInterrupt, SystemExit):
+  if sys.exc_info()[0] in (KeyboardInterrupt, SystemExit, asyncio.CancelledError):
     raise
 
 def clear_console() -> None:
