@@ -14,7 +14,7 @@ __all__ = [
   "as_async", "async_limit",
   "clear_console", "console_link",
   "default_executor", "default_workers",
-  "raise_if_interrupt", "roll_tasks",
+  "raise_if_interrupt", "roll_tasks", "run",
   "measure_duration",
 ]
 
@@ -34,6 +34,9 @@ def clear_console() -> None:
 
 def console_link(text: str, url: str) -> str:
   return f"\033]8;;{url}\033\\{text}\033]8;;\033\\"
+
+def run(fn: Callable[[], Coroutine]):
+  asyncio.run(fn())
 
 async def worker(task: Coro[T] | Awaitable[T], semaphore: asyncio.Semaphore, update=noop) -> T:
   async with semaphore:
