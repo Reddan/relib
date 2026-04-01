@@ -27,9 +27,9 @@ def empty_dirs(path: Path) -> Iterable[Path]:
   for child in path.iterdir():
     nonempty_count += 1
     if child.is_dir():
-      for grand_child in empty_dirs(child):
-        yield grand_child
-        nonempty_count -= child == grand_child
+      for descendant in empty_dirs(child):
+        yield descendant
+        nonempty_count -= child == descendant
   if nonempty_count == 0:
     yield path
 

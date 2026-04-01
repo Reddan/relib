@@ -3,9 +3,10 @@ import contextvars
 import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from functools import partial, wraps
 from time import time
-from typing import Awaitable, Callable, Coroutine, Iterable, ParamSpec, TypeVar
+from typing import Awaitable, Callable, Coroutine, Generator, Iterable, ParamSpec, TypeVar
 from .iter_utils import as_list
 from .processing_utils import noop
 from .types import T
@@ -14,8 +15,9 @@ __all__ = [
   "as_async", "async_limit",
   "clear_console", "console_link",
   "default_executor", "default_workers",
-  "raise_if_interrupt", "roll_tasks", "run",
   "measure_duration",
+  "progress_bar",
+  "raise_if_interrupt", "roll_tasks", "run",
 ]
 
 P = ParamSpec("P")
@@ -24,6 +26,7 @@ Coro = Coroutine[object, object, R]
 
 default_workers = min(32, (os.cpu_count() or 1) + 4)
 default_executor = ThreadPoolExecutor(max_workers=default_workers)
+active_mds = []
 
 def raise_if_interrupt():
   if sys.exc_info()[0] in (KeyboardInterrupt, SystemExit, asyncio.CancelledError):
@@ -37,6 +40,7 @@ def console_link(text: str, url: str) -> str:
 
 def run(fn: Callable[[], Coroutine]):
   asyncio.run(fn())
+  return fn
 
 async def worker(task: Coro[T] | Awaitable[T], semaphore: asyncio.Semaphore, update=noop) -> T:
   async with semaphore:
@@ -45,14 +49,11 @@ async def worker(task: Coro[T] | Awaitable[T], semaphore: asyncio.Semaphore, upd
     return result
 
 async def roll_tasks(tasks: Iterable[Coro[T] | Awaitable[T]], workers=default_workers, progress=False) -> list[T]:
+  if progress:
+    tasks = as_list(tasks)
   semaphore = asyncio.Semaphore(workers)
-  if not progress:
-    return await asyncio.gather(*[worker(task, semaphore) for task in tasks])
-
-  from tqdm import tqdm
-  tasks = as_list(tasks)
-  with tqdm(total=len(tasks)) as pbar:
-    update = partial(pbar.update, 1)
+  num_tasks = len(tasks) if isinstance(tasks, list) else 0
+  with progress_bar(num_tasks * progress) as update:
     return await asyncio.gather(*[worker(task, semaphore, update) for task in tasks])
 
 def as_async(workers: int | ThreadPoolExecutor = default_executor) -> Callable[[Callable[P, R]], Callable[P, Coro[R]]]:
@@ -79,7 +80,14 @@ def async_limit(workers=default_workers) -> Callable[[Callable[P, Coro[R]]], Cal
     return wrapper
   return on_fn
 
-active_mds = []
+@contextmanager
+def progress_bar(total: int, desc: str | None = None) -> Generator[Callable[[], None], None, None]:
+    if not total:
+      yield lambda: None
+    else:
+      from tqdm import tqdm
+      with tqdm(total=total, desc=desc) as pbar:
+        yield partial(pbar.update, 1) # type: ignore
 
 class measure_duration:
   def __init__(self, name):

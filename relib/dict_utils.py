@@ -43,7 +43,7 @@ def dict_by(keys: Iterable[K], values: Iterable[T]) -> dict[K, T]:
 def tuple_by(d: dict[K, T], keys: Iterable[K]) -> tuple[T, ...]:
   return tuple(d[key] for key in keys)
 
-def map_dict(fn: Callable[[T], T], d: dict[K, T]) -> dict[K, T]:
+def map_dict(fn: Callable[[T1], T2], d: dict[K, T1]) -> dict[K, T2]:
   return {key: fn(value) for key, value in d.items()}
 
 @overload

@@ -7,6 +7,7 @@ __all__ = [
   "df_from_array",
   "for_each",
   "noop",
+  "remove_substrings",
   "str_filterer", "StrFilter",
 ]
 
@@ -23,6 +24,14 @@ def clamp(value: int, low: int, high: int) -> int: ...
 def clamp(value: float, low: float, high: float) -> float: ...
 def clamp(value: float, low: float, high: float) -> float:
     return max(low, min(value, high))
+
+def remove_substrings(text: str, *patterns: str | re.Pattern[str]):
+  for pattern in patterns:
+    if isinstance(pattern, str):
+      text = text.replace(pattern, "")
+    else:
+      text = pattern.sub("", text)
+  return text
 
 def _cat_tile(cats, n_tile):
   import numpy as np
